@@ -98,11 +98,11 @@ from helpers import scope
     footer="""
 import json
 import sys
-import Tracer
+import taints
 if __name__ == "__main__":
     mystring = sys.argv[1]
     restrict = {'methods': %s}
-    with Tracer.Tracer(mystring, restrict) as tracer:
+    with taints.Tracer(mystring, restrict) as tracer:
         main(tracer())
     assert tracer.inputstr.comparisons
     print(json.dumps({
