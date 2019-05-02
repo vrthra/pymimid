@@ -1,7 +1,10 @@
 python=python3
 export PYTHONPATH=./src
 
+.SECONDARY:
 
+all: build/calc_learn.json
+	@echo
 
 
 # rewrite to incorporate a in b => a.in_(b)
@@ -17,7 +20,7 @@ build/%_trace.py: build/%_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
-build/calc_trace.py: arg='(123+133+(12-3))+33'
+build/calc_trace.py: arg='(123+133*(12-3))+33'
 build/calc_trace.py: build/calc_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
@@ -28,9 +31,20 @@ build/%_tree.json: build/%_trace.py | build
 	$(python) src/mine.py $<  > $@_
 	mv $@_ $@
 
+
+# Get the grammar out
 build/%_refine.json: build/%_tree.json | build
 	$(python) src/refine.py $< > $@_
 	mv $@_ $@
 
 
+# Learn the right hand regular expressions from trees.
+build/%_learn.json: build/%_refine.json | build
+	$(python) src/active_learn.py $< > $@_
+	mv $@_ $@
+
+
 build: ; mkdir -p $@
+
+clean:
+	rm -rf build

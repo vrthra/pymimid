@@ -235,12 +235,13 @@ def main(tree_file, nt, alt):
                 print(i,j,k, ' '.join(["%d:%s" % (i,t) for i,t in enumerate(a)]))
             print()
         return
-    generate_expansion_db(tree, str_db, grammar)
-    sys.stdout.flush()
-    #for i in str_db: print(i, str_db[i])
-    new_grammar = {}
-    process_grammar(grammar, tree, new_grammar)
-    print(new_grammar)
+
+    new_tree = {}
+    new_tree['grammar'] = grammar
+    new_tree['str_db'] = str_db
+    new_tree['tree'] = tree
+    new_tree['original'] = src
+    print(json.dumps(new_tree))
 
 if __name__ == '__main__':
     main(sys.argv[1], nt=(sys.argv[2] if len(sys.argv) > 2 else None), alt=(int(sys.argv[3]) if len(sys.argv) > 3 else -1))
