@@ -11,12 +11,14 @@ import astor
 method_name = None
 if_counter = None
 while_counter = None
+methods = []
 class Rewriter(ast.NodeTransformer):
     def visit_FunctionDef(self, tree_node):
         global method_name, while_counter, if_counter
         while_counter = 0
         if_counter = 0
         method_name = tree_node.name
+        methods.append(tree_node.name)
         self.generic_visit(tree_node)
         while_counter = 0
         return tree_node
@@ -93,7 +95,22 @@ from helpers import scope
     """
     print(header)
     print(astor.to_source(v))
-
+    footer="""
+import json
+import sys
+import Tracer
+if __name__ == "__main__":
+    mystring = sys.argv[1]
+    restrict = {'methods': %s}
+    with Tracer.Tracer(mystring, restrict) as tracer:
+        main(tracer())
+    assert tracer.inputstr.comparisons
+    print(json.dumps({
+        'comparisons':Tracer.convert_comparisons(tracer.inputstr.comparisons),
+        'method_map': Tracer.convert_method_map(tracer.method_map),
+        'inputstr': str(tracer.inputstr)}))
+"""
+    print(footer % repr(methods))
 
 import sys
 main(sys.argv)
