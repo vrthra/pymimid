@@ -111,6 +111,7 @@ if __name__ == "__main__":
     print("INPUT:", my_str, file=sys.stderr)
     tree = to_tree(method_tree[first], my_str)
     print("RECONSTRUCTED INPUT:", tree_to_string(tree), file=sys.stderr)
-    json.dump(tree, sys.stdout)
+    my_tree = {'tree': tree, 'original': call_trace['original']}
+    json.dump(my_tree, sys.stdout)
     assert tree_to_string(tree) == my_str
     #with open('derivation_tree.json', 'w+') as f: json.dump(tree, f)

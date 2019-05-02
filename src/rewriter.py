@@ -88,7 +88,8 @@ def rewrite(src):
 
 
 def main(args):
-    v = rewrite(open(args[1]).read())
+    original = open(args[1]).read()
+    v = rewrite(original)
     header="""
 import string
 from helpers import scope
@@ -108,11 +109,12 @@ if __name__ == "__main__":
     print(json.dumps({
         'comparisons':Tracer.convert_comparisons(tracer.inputstr.comparisons),
         'method_map': Tracer.convert_method_map(tracer.method_map),
-        'inputstr': str(tracer.inputstr)}))
+        'inputstr': str(tracer.inputstr),
+        'original': %s}))
     # This generates a trace file if redirected to trace.json
     # use ./src/mine.py trace.json to get the derivation tree.
 """
-    print(footer % repr(methods))
+    print(footer % (repr(methods), repr(args[1])))
 
 import sys
 main(sys.argv)
