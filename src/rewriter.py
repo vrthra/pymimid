@@ -87,6 +87,11 @@ def rewrite(src):
 
 def main(args):
     v = rewrite(open(args[1]).read())
+    header="""
+import string
+from helpers import scope
+    """
+    print(header)
     print(astor.to_source(v))
 
 
