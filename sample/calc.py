@@ -43,3 +43,6 @@ def parse_expr(s, i = 0):
     if is_op:
         raise Exception(s,i)
     return i, expr
+
+def main(arg):
+    return parse_expr(arg)
