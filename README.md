@@ -1,0 +1,3 @@
+# pymimid
+
+Infering grammar
