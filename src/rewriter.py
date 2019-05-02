@@ -102,7 +102,7 @@ import Tracer
 if __name__ == "__main__":
     mystring = sys.argv[1]
     restrict = {'methods': %s}
-    with Traver.Tracer(mystring, restrict) as tracer:
+    with Tracer.Tracer(mystring, restrict) as tracer:
         main(tracer())
     assert tracer.inputstr.comparisons
     print(json.dumps({
