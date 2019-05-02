@@ -201,22 +201,22 @@ def process_alt(nt, my_alt, tree):
 
     for k in regex_map:
         if regex_map[k]:
-            print('->        ', str(k))
-    print('')
+            print('->        ', str(k), file=sys.stderr)
+    print('', file=sys.stderr)
     regex_map.clear()
     sys.stdout.flush()
 
 def process_rule(nt, my_rule, tree, new_rule):
     for alt in my_rule:
         regex = process_alt(nt, alt, tree)
-        print("->    ", str(regex))
+        print("->    ", str(regex), file=sys.stderr)
         new_rule.append(str(regex))
-    print('-'*10)
+    print('-'*10, file=sys.stderr)
     sys.stdout.flush()
 
 def process_grammar(grammar, tree, new_grammar):
     for nt in grammar:
-        print("->", nt)
+        print("->", nt, file=sys.stderr)
         my_rule = grammar[nt]
         new_rule = []
         new_grammar[nt] = new_rule
