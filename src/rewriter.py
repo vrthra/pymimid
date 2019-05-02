@@ -109,6 +109,8 @@ if __name__ == "__main__":
         'comparisons':Tracer.convert_comparisons(tracer.inputstr.comparisons),
         'method_map': Tracer.convert_method_map(tracer.method_map),
         'inputstr': str(tracer.inputstr)}))
+    # This generates a trace file if redirected to trace.json
+    # use ./src/mine.py trace.json to get the derivation tree.
 """
     print(footer % repr(methods))
 
