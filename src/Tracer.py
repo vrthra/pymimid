@@ -1,4 +1,4 @@
-from InformationFlow import ctstr
+from taints import ctstr
 
 CURRENT_METHOD = None
 METHOD_NUM_STACK = []
