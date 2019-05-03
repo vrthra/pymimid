@@ -19,41 +19,45 @@ class Rewriter(ast.NodeTransformer):
         if_counter = 0
         method_name = tree_node.name
         methods.append(tree_node.name)
+
+        tree_node.body.insert(0, ast.Assign(targets=[ast.Name(id='__scope_iter')], value=ast.Dict(keys=[], values=[])))
         self.generic_visit(tree_node)
         while_counter = 0
         return tree_node
 
-    def wrap_in_with(self, name, val, body):
+    def wrap_in_with(self, name, counter, val, body):
         name_expr = ast.Str(name)
+        counter_expr = ast.Num(counter)
+        method_name_expr = ast.Str(method_name)
+        prefix_expr = ast.Name(id='__scope_iter')
         val_expr = ast.Num(val)
-        args = [name_expr, val_expr]
+        args = [name_expr, counter_expr, method_name_expr, prefix_expr, val_expr]
         scope_expr = ast.Call(func=ast.Name(id='scope', ctx=ast.Load()),
                 args=args, keywords=[])
         return [ast.With(items=[ast.withitem(scope_expr, None)], body=body)]
 
 
-    def process_if(self, tree_node, name, val=None):
+    def process_if(self, tree_node, counter, val=None):
         if val is None: val = 0
         else: val += 1
         self.generic_visit(tree_node.test)
         for node in tree_node.body: self.generic_visit(node)
-        tree_node.body = self.wrap_in_with(name, val, tree_node.body)
+        tree_node.body = self.wrap_in_with('if', counter, val, tree_node.body)
 
         # else part.
         if len(tree_node.orelse) == 1 and isinstance(tree_node.orelse[0], ast.If):
-            self.process_if(tree_node.orelse[0], name, val)
+            self.process_if(tree_node.orelse[0], counter, val)
         else:
             if tree_node.orelse:
                 for node in tree_node.orelse: self.generic_visit(node)
                 val += 1
-                tree_node.orelse = self.wrap_in_with(name, val, tree_node.orelse)
+                tree_node.orelse = self.wrap_in_with('if', counter, val, tree_node.orelse)
 
 
     def visit_If(self, tree_node):
         global if_counter
         if_counter += 1
-        name = 'if_%d %s' % (if_counter, method_name)
-        self.process_if(tree_node, name=name)
+        self.process_if(tree_node, counter=if_counter)
         return tree_node
 
 
@@ -64,10 +68,7 @@ class Rewriter(ast.NodeTransformer):
         body = tree_node.body
         assert not tree_node.orelse
         self.generic_visit(tree_node)
-        name = ast.Str('while_%d %s' % (while_counter, method_name))
-        val = ast.Num(0)
-        scope_expr = ast.Call(func=ast.Name(id='scope', ctx=ast.Load()), args=[name, val], keywords=[])
-        tree_node.body = [ast.With(items=[ast.withitem(scope_expr, None)], body=body)]
+        tree_node.body = self.wrap_in_with('while', while_counter, 0, body)
         return tree_node
 
     def visit_Compare(self, tree_node):
@@ -92,7 +93,7 @@ def main(args):
     v = rewrite(original)
     header="""
 import string
-from helpers import scope
+from scope_context import scope
     """
     print(header)
     print(astor.to_source(v))
