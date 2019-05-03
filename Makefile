@@ -48,6 +48,8 @@ build/%_learn.json: build/%_refine.json | build
 	$(python) src/active_learn.py $< > $@_
 	mv $@_ $@
 
+show:
+	./bin/show build/calc_refine.json grammar
 
 build: ; mkdir -p $@
 
