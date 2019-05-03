@@ -3,7 +3,7 @@ export PYTHONPATH=./src
 
 .SECONDARY:
 
-all: build/calc_learn.json
+all: build/calc_refine.json
 	@echo
 
 
@@ -20,7 +20,7 @@ build/%_trace.json: build/%_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
-build/calc_trace.json: arg='(123+133*(12-3))+33'
+build/calc_trace.json: arg='(123+133*(12-3)/9+8)+33'
 build/calc_trace.json: build/calc_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@

@@ -6,6 +6,7 @@ import itertools
 
 import mingen
 import to_grammar
+import check
 
 # What samples to use for a{n} to conirm that a* is a valid regex.
 SAMPLES_FOR_REP = [0, 1, 2]
@@ -143,25 +144,6 @@ def to_strings(nt, regex, tree):
             #print("Expansion %s:\tregex:%s" % (repr(expansion), str(regex)))
             yield tree_to_str(tree, nt, expansion)
 
-import sys, imp
-#import parse_ # does not have the .in_ construction for taints.
-parse_ = imp.new_module('parse_')
-
-exec_map = {}
-def check(s, label):
-    if s in exec_map: return exec_map[s]
-    v =  _check(s)
-    #print("\t\t", repr(s), v, ' from: %s' % str(label))
-    exec_map[s] = v
-    return v
-
-def _check(s):
-    try:
-        parse_.main(s)
-        return True
-    except:
-        return False
-
 str_db = {}
 regex_map = {}
 
@@ -181,13 +163,13 @@ def process_alt(nt, my_alt, tree):
         all_true = False
         for expr in to_strings(nt, regex, tree):
             if regex_map.get(regex, False):
-                v = check(expr, regex)
+                v = check.check(expr, regex)
                 regex_map[regex] = v
                 if not v: # this regex failed
                     all_true = False
                     break # one sample of regex failed. Exit
             elif regex not in regex_map:
-                v = check(expr, regex)
+                v = check.check(expr, regex)
                 regex_map[regex] = v
                 if not v: # this regex failed.
                     all_true = False
@@ -227,7 +209,7 @@ def main(tree_file, nt, alt):
     my_tree = json.load(open(tree_file))
     tree = my_tree['tree']
     src = my_tree['original']
-    exec(open(src).read(), parse_.__dict__)
+    check.init_module(src)
     grammar = my_tree['grammar']
     generate_expansion_db(tree, str_db, grammar)
     sys.stdout.flush()
