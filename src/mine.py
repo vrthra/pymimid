@@ -65,14 +65,7 @@ def indexes_to_children(indexes, my_str):
             in it.groupby(enumerate(indexes), lambda x:x[0]-x[1])]
     return [to_node(n, my_str) for n in lst]
 
-import re
-RE_NONTERMINAL = re.compile(r'(<[^<> ]*>)')
-# convert the derivation tree to string
-def tree_to_string(tree):
-    def is_nonterminal(s): return re.match(RE_NONTERMINAL, s)
-    symbol, children, *_ = tree
-    if children: return ''.join(tree_to_string(c) for c in children)
-    else: return '' if is_nonterminal(symbol) else symbol
+from helpers import tree_to_string
 
 # convert a mapped tree to the fuzzingbook derivation tree.
 def to_tree(node, my_str):

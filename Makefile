@@ -31,13 +31,18 @@ build/%_tree.json: build/%_trace.json | build
 	$(python) src/mine.py $<  > $@_
 	mv $@_ $@
 
+# Learn the right hand regular expressions from trees.
+build/%_generalize.json: build/%_tree.json | build
+	$(python) src/generalize_iter.py $< > $@_
+	mv $@_ $@
 
 # Get the grammar out
-build/%_refine.json: build/%_tree.json | build
+build/%_refine.json: build/%_generalize.json | build
 	$(python) src/refine.py $< > $@_
 	mv $@_ $@
 
 
+# |
 # Learn the right hand regular expressions from trees.
 build/%_learn.json: build/%_refine.json | build
 	$(python) src/active_learn.py $< > $@_
