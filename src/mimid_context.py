@@ -1,7 +1,7 @@
 import Tracer
 SCOPES = {}
 
-def to_key(name, num, method):
+def to_key(method, name, num):
     return '%s:%s_%s' % (method, name, num)
 
 class method__:

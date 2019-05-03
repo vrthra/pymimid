@@ -3,7 +3,7 @@ export PYTHONPATH=./src
 
 .SECONDARY:
 
-all: build/microjson_refine.json
+all: build/urljava_refine.json
 	@echo
 
 
@@ -30,6 +30,13 @@ build/microjson_trace.json: build/microjson_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
+
+build/urljava_trace.json: arg='http://me:mexico@www.google.com:8080/my/path/q?searc=key&attr=newkey\#frag'
+build/urljava_trace.json: build/urljava_parser.py | build
+	$(python) $< $(arg) > $@_
+	mv $@_ $@
+
+
 # Get the derivation tree out
 build/%_tree.json: build/%_trace.json | build
 	$(python) src/mine.py $<  > $@_
@@ -53,7 +60,7 @@ build/%_learn.json: build/%_refine.json | build
 	mv $@_ $@
 
 show:
-	@./bin/show build/microjson_refine.json grammar
+	@./bin/show build/urljava_refine.json grammar
 
 build: ; mkdir -p $@
 
