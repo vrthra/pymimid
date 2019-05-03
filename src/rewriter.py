@@ -97,7 +97,7 @@ class Rewriter(ast.NodeTransformer):
 def rewrite(src):
     return ast.fix_missing_locations(Rewriter().visit(ast.parse(src)))
 
-
+import os.path
 def main(args):
     original = open(args[1]).read()
     v = rewrite(original)
@@ -113,7 +113,8 @@ import sys
 import Tracer
 if __name__ == "__main__":
     mystring = sys.argv[1]
-    restrict = {'methods': %s}
+    #restrict = {'files': ['build/s_parser.py']}
+    restrict = {'files': [sys.argv[0]]}
     with Tracer.Tracer(mystring, restrict) as tracer:
         main(tracer())
     assert tracer.inputstr.comparisons
@@ -125,7 +126,8 @@ if __name__ == "__main__":
     # This generates a trace file if redirected to trace.json
     # use ./src/mine.py trace.json to get the derivation tree.
 """
-    print(footer % (repr(methods), repr(args[1])))
+    #print(footer % (os.path.splitext(os.path.basename(args[1]))[0], repr(args[1])))
+    print(footer % repr(args[1]))
 
 import sys
 main(sys.argv)
