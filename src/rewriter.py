@@ -12,14 +12,11 @@ if_counter = None
 while_counter = None
 methods = []
 class Rewriter(ast.NodeTransformer):
-    def visit_FunctionDef(self, tree_node):
-        global while_counter, if_counter
-        while_counter = 0
-        if_counter = 0
-        methods.append(tree_node.name)
-        self.generic_visit(tree_node)
-        while_counter = 0
-        return tree_node
+    def wrap_in_method(self, body):
+        method_name_expr = ast.Str(methods[-1])
+        args = [method_name_expr]
+        scope_expr = ast.Call(func=ast.Name(id='method__', ctx=ast.Load()), args=args, keywords=[])
+        return [ast.With(items=[ast.withitem(scope_expr, None)], body=body)]
 
     def wrap_in_outer(self, name, counter, node):
         name_expr = ast.Str(name)
@@ -40,6 +37,17 @@ class Rewriter(ast.NodeTransformer):
                 args=args, keywords=[])
         return [ast.With(items=[ast.withitem(scope_expr, None)], body=body)]
 
+
+
+    def visit_FunctionDef(self, tree_node):
+        global while_counter, if_counter
+        while_counter = 0
+        if_counter = 0
+        methods.append(tree_node.name)
+        self.generic_visit(tree_node)
+        while_counter = 0
+        tree_node.body = self.wrap_in_method(tree_node.body)
+        return tree_node
 
     def process_if(self, tree_node, counter, val=None):
         if val is None: val = 0
@@ -97,7 +105,7 @@ def main(args):
     v = rewrite(original)
     header="""
 import string
-from mimid_context import scope__, stack__
+from mimid_context import scope__, stack__, method__
     """
     print(header)
     print(astor.to_source(v))
