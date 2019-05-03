@@ -158,7 +158,7 @@ def _from_json_string(stm):
             r += decode_escape(c, stm)
         elif c == '"':
             return r
-        elif c > '\x7f':
+        elif c in [str(i) for i in range(127, 256)]:
             r += _decode_utf8(c, stm)
         else:
             r += c

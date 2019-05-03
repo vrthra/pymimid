@@ -69,6 +69,8 @@ class xtstr(ctstr):
             self.comparisons.append((ct, m))
         elif op == Op.IN:
             self.comparisons.extend(self.__find(c_a, c_b, m))
+        elif len(c_a) == 0 or len(c_b) == 0:
+            pass
         else:
             assert False, "op:%s A:%s B:%s" % (op, c_a, c_b)
         # print(repr(m))
