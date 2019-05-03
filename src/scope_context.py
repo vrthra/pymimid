@@ -1,7 +1,10 @@
 import Tracer
+SCOPES = {}
 class scope:
-    def __init__(self, name, num, method, scope_iter, alt):
-        self.name, self.num, self.method, self.scope_iter, self.alt = name, num, method, scope_iter, alt
+    def __init__(self, name, num, method, alt):
+        if method not in SCOPES: SCOPES[method] = {}
+        self.scope_iter = SCOPES[method]
+        self.name, self.num, self.method, self.alt = name, num, method, alt
         self.key = '%s:%s_%s %s' % (self.method, self.name, self.num, self.alt)
         if self.key not in self.scope_iter: self.scope_iter[self.key] = 0
 

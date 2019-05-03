@@ -8,19 +8,15 @@
 import ast
 import astor
 
-method_name = None
 if_counter = None
 while_counter = None
 methods = []
 class Rewriter(ast.NodeTransformer):
     def visit_FunctionDef(self, tree_node):
-        global method_name, while_counter, if_counter
+        global while_counter, if_counter
         while_counter = 0
         if_counter = 0
-        method_name = tree_node.name
         methods.append(tree_node.name)
-
-        tree_node.body.insert(0, ast.Assign(targets=[ast.Name(id='__scope_iter')], value=ast.Dict(keys=[], values=[])))
         self.generic_visit(tree_node)
         while_counter = 0
         return tree_node
@@ -28,10 +24,9 @@ class Rewriter(ast.NodeTransformer):
     def wrap_in_with(self, name, counter, val, body):
         name_expr = ast.Str(name)
         counter_expr = ast.Num(counter)
-        method_name_expr = ast.Str(method_name)
-        prefix_expr = ast.Name(id='__scope_iter')
+        method_name_expr = ast.Str(methods[-1])
         val_expr = ast.Num(val)
-        args = [name_expr, counter_expr, method_name_expr, prefix_expr, val_expr]
+        args = [name_expr, counter_expr, method_name_expr, val_expr]
         scope_expr = ast.Call(func=ast.Name(id='scope', ctx=ast.Load()),
                 args=args, keywords=[])
         return [ast.With(items=[ast.withitem(scope_expr, None)], body=body)]

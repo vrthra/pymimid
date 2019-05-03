@@ -16,18 +16,18 @@ build/%_parser.py: sample/%.py | build
 
 # Now use the rewritten source to generate trace
 arg=
-build/%_trace.py: build/%_parser.py | build
+build/%_trace.json: build/%_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
-build/calc_trace.py: arg='(123+133*(12-3))+33'
-build/calc_trace.py: build/calc_parser.py | build
+build/calc_trace.json: arg='(123+133*(12-3))+33'
+build/calc_trace.json: build/calc_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
 
 # Get the derivation tree out
-build/%_tree.json: build/%_trace.py | build
+build/%_tree.json: build/%_trace.json | build
 	$(python) src/mine.py $<  > $@_
 	mv $@_ $@
 
