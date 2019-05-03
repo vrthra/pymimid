@@ -51,10 +51,10 @@ def trace_set_method(method):
 
 class xtstr(ctstr):
     def __find(self, substr, sub, m):
-        v = str(substr).find(sub)
+        v = str(substr).find(str(sub))
         start = substr.taint[0]
         if v == -1:
-            return [(i, m) for i in range(start, start + v)]
+            return [(i, m) for i in range(start, start + v+len(sub))]
         else:
             return [(i, m) for i in range(start, start + len(substr))]
 
@@ -158,11 +158,11 @@ class Tracer:
             trace_return()
         trace_set_method(cxt.method)
 
-def convert_comparisons(comparisons):
+def convert_comparisons(comparisons, inputstr):
     light_comparisons = []
     for idx, (method, stack_depth, mid) in comparisons:
         if idx is None: continue
-        light_comparisons.append((idx, mid))
+        light_comparisons.append((idx, inputstr[idx], mid))
     return light_comparisons
 
 def convert_method_map(method_map):

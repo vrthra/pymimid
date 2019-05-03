@@ -33,7 +33,8 @@ build/microjson_trace.json: build/microjson_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
-build/urljava_trace.json: arg='http://me:mexico@www.google.com:8080/my/path/q?searc=key&attr=newkey\#frag'
+#build/urljava_trace.json: arg='http://me:mexico@www.google.com:8080/my/path/q?searc=key&attr=newkey\#frag'
+build/urljava_trace.json: arg='http://a/my/'
 build/urljava_trace.json: build/urljava_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@

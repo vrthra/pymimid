@@ -31,10 +31,10 @@ class URL:
         self.file = None
 
         limit = len(spec)
-        while limit > 0 and spec[limit -1] <= ' ':
+        while limit > 0 and spec[limit -1] == ' ':
             limit -= 1 # eliminate trailing whitespace
 
-        while start < limit and spec[start] <= ' ':
+        while start < limit and spec[start] == ' ':
             start += 1        # eliminate leading whitespace
 
         if spec.lower()[start:start+5] == "url:":
@@ -54,7 +54,6 @@ class URL:
         i = spec.find('#', start)
         v = limit if i < 0 else i
         newspec = spec[start:v]
-        (protocol, host, port, authority, userInfo, path) =  self.parseURL(newspec)
         i = spec.find('#', start)
         ref = None
         if i >= 0:
@@ -67,6 +66,7 @@ class URL:
         query=''
         if (queryStart != -1):
              query = spec[queryStart+1:limit]
+        (protocol, host, port, authority, userInfo, path) =  self.parseURL(newspec)
         self.setURL(protocol, host, port, authority, userInfo, path, query, ref)
 
 

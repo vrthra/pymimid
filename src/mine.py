@@ -85,7 +85,7 @@ def to_tree(node, my_str):
 # ambiguous parse.
 def last_comparisons(comparisons):
     last_cmp_only = {}
-    for idx, mid in comparisons:
+    for idx, char, mid in comparisons:
         last_cmp_only[idx] = mid
     return last_cmp_only
 

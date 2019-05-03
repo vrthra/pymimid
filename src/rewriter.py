@@ -119,7 +119,7 @@ if __name__ == "__main__":
         main(tracer())
     assert tracer.inputstr.comparisons
     print(json.dumps({
-        'comparisons':Tracer.convert_comparisons(tracer.inputstr.comparisons),
+        'comparisons':Tracer.convert_comparisons(tracer.inputstr.comparisons, mystring),
         'method_map': Tracer.convert_method_map(tracer.method_map),
         'inputstr': str(tracer.inputstr),
         'original': %s}))
