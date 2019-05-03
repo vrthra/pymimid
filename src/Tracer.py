@@ -1,4 +1,4 @@
-from taints import ctstr
+from taints import ctstr, Op
 
 CURRENT_METHOD = None
 METHOD_NUM_STACK = []
@@ -50,15 +50,28 @@ def trace_set_method(method):
     set_current_method(method, len(METHOD_NUM_STACK), METHOD_NUM_STACK[-1][0])
 
 class xtstr(ctstr):
+    def __find(self, substr, sub, m):
+        v = str(substr).find(sub)
+        start = substr.taint[0]
+        if v == -1:
+            return [(i, m) for i in range(start, start + v)]
+        else:
+            return [(i, m) for i in range(start, start + len(substr))]
+
     def add_instr(self, op, c_a, c_b):
         ct = None
+        m = get_current_method()
         if len(c_a) == 1 and isinstance(c_a, xtstr):
             ct = c_a.taint[0]
+            self.comparisons.append((ct, m))
         elif len(c_b) == 1 and isinstance(c_b, xtstr):
             ct = c_b.taint[0]
-        m = get_current_method()
-        #print(repr(m))
-        self.comparisons.append((ct, m))
+            self.comparisons.append((ct, m))
+        elif op == Op.IN:
+            self.comparisons.extend(self.__find(c_a, c_b, m))
+        else:
+            assert False, "op:%s A:%s B:%s" % (op, c_a, c_b)
+        # print(repr(m))
 
     def create(self, res, taint):
         o = xtstr(res, taint, self)
@@ -67,6 +80,29 @@ class xtstr(ctstr):
 
     def __hash__(self):
         return hash(str(self))
+
+import inspect
+from taints import tstr
+
+def make_str_abort_wrapper(fun):
+    def proxy(*args, **kwargs):
+        raise tstr.TaintException(
+            '%s Not implemented in `ostr`' %
+            fun.__name__)
+    return proxy
+
+defined_xtstr = {}
+for name, fn in inspect.getmembers(xtstr, callable):
+    clz = fn.__qualname__.split('.')[0]
+    if clz in {'ctstr', 'xtstr'}:
+        defined_xtstr[name] = clz
+
+for name, fn in inspect.getmembers(str, callable):
+    if name not in defined_xtstr and name not in {
+            '__init__', '__str__', '__eq__', '__ne__', '__class__', '__new__',
+            '__setattr__', '__len__', '__getattribute__', '__le__', 'lower',
+            'strip', 'lstrip', 'rstrip', '__iter__', '__getitem__', '__add__'}:
+        setattr(xtstr, name, make_str_abort_wrapper(fn))
 
 class Context:
     def __init__(self, frame, track_caller=True):
