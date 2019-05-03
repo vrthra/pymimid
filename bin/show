@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+f=$1
+shift
+cat $f | python3 ./src/show_grammar.py $*
