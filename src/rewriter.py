@@ -90,8 +90,7 @@ class Rewriter(ast.NodeTransformer):
         mod_val = ast.Call(
             func=ast.Attribute(
                 value=left,
-                attr='in_',
-                ctx=left.ctx),
+                attr='in_'),
             args=tree_node.comparators,
             keywords=[])
         return mod_val

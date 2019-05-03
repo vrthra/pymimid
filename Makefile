@@ -3,7 +3,7 @@ export PYTHONPATH=./src
 
 .SECONDARY:
 
-all: build/calc_refine.json
+all: build/microjson_refine.json
 	@echo
 
 
@@ -25,6 +25,10 @@ build/calc_trace.json: build/calc_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
+build/microjson_trace.json: arg='{"mykey1": [1, 2, 3], "mykey2": null}'
+build/microjson_trace.json: build/microjson_parser.py | build
+	$(python) $< $(arg) > $@_
+	mv $@_ $@
 
 # Get the derivation tree out
 build/%_tree.json: build/%_trace.json | build
@@ -49,7 +53,7 @@ build/%_learn.json: build/%_refine.json | build
 	mv $@_ $@
 
 show:
-	./bin/show build/calc_refine.json grammar
+	@./bin/show build/microjson_refine.json grammar
 
 build: ; mkdir -p $@
 

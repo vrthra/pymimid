@@ -65,6 +65,9 @@ class xtstr(ctstr):
         o.comparisons = self.comparisons
         return o
 
+    def __hash__(self):
+        return hash(str(self))
+
 class Context:
     def __init__(self, frame, track_caller=True):
         self.method = frame.f_code.co_name
