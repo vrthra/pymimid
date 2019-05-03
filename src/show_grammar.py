@@ -49,9 +49,9 @@ def show_json_rev(d, indent):
                 else:
                     print(space * indent, i,":", json.dumps(k))
 
-def main(arg, keys):
-    d = json.load(open(arg))
+def main(keys):
+    d = json.load(sys.stdin)
     for k in keys: d = d[k]
     show_json_rev(d, 0)
 
-main(sys.argv[1], sys.argv[2:])
+main(sys.argv[1:])
