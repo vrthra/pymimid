@@ -3,7 +3,7 @@ export PYTHONPATH=./src
 
 .SECONDARY:
 
-all: build/urljava_refine.json
+all-%: build/%_refine.json
 	@echo
 
 
