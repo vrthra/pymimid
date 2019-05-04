@@ -3,7 +3,9 @@ export PYTHONPATH=./src
 
 .SECONDARY:
 
-all: all-urljava
+target=urljava
+
+all: all-$(target)
 	@echo
 
 all-%: build/%_refine.json
@@ -61,8 +63,8 @@ build/%_learn.json: build/%_refine.json | build
 	$(python) src/active_learn.py $< > $@_
 	mv $@_ $@
 
-show:
-	@./bin/show build/urljava_refine.json grammar
+show: all-$(target)
+	@for i in build/*_refine.json; do echo $$i; ./bin/show $$i grammar; done
 
 build: ; mkdir -p $@
 
