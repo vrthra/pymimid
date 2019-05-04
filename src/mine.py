@@ -65,6 +65,38 @@ def indexes_to_children(indexes, my_str):
             in it.groupby(enumerate(indexes), lambda x:x[0]-x[1])]
     return [to_node(n, my_str) for n in lst]
 
+def no_overlap(arr):
+    def is_included(ranges, s_, e_):
+        return {(s, e) for (s, e) in ranges if (s_ >= s and e_ <= e)}
+
+    def has_overlap(ranges, s_, e_):
+        return {(s, e) for (s, e) in ranges if \
+                    (s_ >= s and s_ <= e) or \
+                    (e_ >= s and e_ <= e) or \
+                    (s_ <= s and e_ >= e)}
+
+    my_ranges = {}
+    for a in arr:
+        _, _, s, e = a
+        included = is_included(my_ranges, s, e)
+        if included:
+            for i in included:
+                r = my_ranges[i][1]+ a[1]
+                my_ranges[i][1].clear()
+                sr = sorted(r, key=lambda x: x[2])
+                my_ranges[i][1].extend(sr)
+        else:
+            overlaps = has_overlap(my_ranges, s, e)
+            if overlaps:
+                assert False
+            else:
+                my_ranges[(s, e)] = a
+    res = my_ranges.values()
+    s = sorted(res, key=lambda x: x[2]) # assert no overlap, and order by starting index
+    return s
+
+
+
 from helpers import tree_to_string
 
 # convert a mapped tree to the fuzzingbook derivation tree.
@@ -73,7 +105,7 @@ def to_tree(node, my_str):
     indexes = node['indexes']
     node_children = [to_tree(c, my_str) for c in node.get('children', [])]
     idx_children = indexes_to_children(indexes, my_str)
-    children = sorted([c for c in node_children if c is not None] + idx_children, key=lambda x: x[2]) # assert no overlap, and order by starting index
+    children = no_overlap([c for c in node_children if c is not None] + idx_children)
     if not children:
         return None
     start_idx = children[0][2]
