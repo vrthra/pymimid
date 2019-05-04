@@ -80,11 +80,13 @@ def no_overlap(arr):
         _, _, s, e = a
         included = is_included(my_ranges, s, e)
         if included:
-            for i in included:
-                r = my_ranges[i][1]+ a[1]
-                my_ranges[i][1].clear()
-                sr = sorted(r, key=lambda x: x[2])
-                my_ranges[i][1].extend(sr)
+            continue # we will fill up the blanks later.
+            #for i in included:
+                #insert_into_node(my_ranges[i], i)
+                #r = my_ranges[i][1]+ a[1]
+                #my_ranges[i][1].clear()
+                #sr = sorted(r, key=lambda x: x[2])
+                #my_ranges[i][1].extend(sr)
         else:
             overlaps = has_overlap(my_ranges, s, e)
             if overlaps:
@@ -115,7 +117,19 @@ def to_tree(node, my_str):
         return None
     start_idx = children[0][2]
     end_idx = children[-1][3]
-    return (method_name, children, start_idx, end_idx)
+    si = start_idx
+    my_children = []
+    # FILL IN chars that we did not compare. This is likely due to an i + n
+    # instruction.
+    for c in children:
+        if c[2] != si:
+            sbs = my_str[si: c[2]]
+            my_children.append((sbs, [], si, c[2]-1))
+        my_children.append(c)
+        si = c[3] + 1
+
+    m = (method_name, my_children, start_idx, end_idx)
+    return m
 
 # We need only the last comparisons made on any index
 # This means that we care for only the last parse in an

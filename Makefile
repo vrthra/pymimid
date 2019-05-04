@@ -100,4 +100,4 @@ calc-merge:
 	cat build/calc-grammar.py | ./src/show_grammar.py
 
 test:
-	set -e; for i in calc urljava microjson; do echo $$i; make clean; make show target=$$i; done
+	set -e; for i in calc urljava urlpy microjson; do echo $$i; make clean; make show target=$$i; done
