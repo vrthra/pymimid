@@ -1,5 +1,4 @@
 import string
-from pycore import dataparser as d
 class URL:
     __slots__ = [
             'protocol',
@@ -136,7 +135,7 @@ class URL:
                                 ind += 1
                                 # port can be null according to RFC2396
                                 if (len(nhost) > (ind + 1)):
-                                    port = d.parse_int(nhost[ind+1:])
+                                    port = int(nhost[ind+1:])
                             else:
                                 raise Exception("Invalid authority field: " + authority)
                     else:
@@ -147,7 +146,7 @@ class URL:
                     if (ind >= 0):
                         # port can be null according to RFC2396
                         if (len(host) > (ind + 1)):
-                            port = d.parse_int(host[ind + 1:])
+                            port = int(host[ind + 1:])
                         host = host[0: ind]
             else:
                 host = ""
