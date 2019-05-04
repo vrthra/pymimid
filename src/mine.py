@@ -120,9 +120,16 @@ def to_tree(node, my_str):
 # We need only the last comparisons made on any index
 # This means that we care for only the last parse in an
 # ambiguous parse.
+
+# What we actually need is that we can not replace last comparisons
+# if it came from a child.
 def last_comparisons(comparisons):
     last_cmp_only = {}
     for idx, char, mid in comparisons:
+        if idx in last_cmp_only:
+            if last_cmp_only[idx] > mid:
+                # do not clobber children
+                continue
         last_cmp_only[idx] = mid
     return last_cmp_only
 
