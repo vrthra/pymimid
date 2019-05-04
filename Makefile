@@ -90,5 +90,6 @@ save:
 
 
 calc-merge:
-	for i in $$(cat sample/calc.csv); do echo $$i; make build/calc_refine.json arg='"$$i"'; make save; rm -rf build; done
-	$(python) ./src/merge.py .backup/calc_*
+	for i in $$(cat sample/calc.csv); do echo $$i; make clean; make build/calc_refine.json arg='"$$i"'; make save; done
+	$(python) ./src/merge.py .backup/calc_* > build/calc-grammar.py
+	cat build/calc-grammar.py | ./src/show_grammar.py
