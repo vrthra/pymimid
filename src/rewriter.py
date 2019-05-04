@@ -53,6 +53,8 @@ class Rewriter(ast.NodeTransformer):
         if val is None: val = 0
         else: val += 1
         if_body = []
+        self.generic_visit(tree_node.test)
+        for node in tree_node.body: self.generic_visit(node)
         tree_node.body = self.wrap_in_inner('if', counter, val, tree_node.body)
 
         # else part.
@@ -61,11 +63,11 @@ class Rewriter(ast.NodeTransformer):
         else:
             if tree_node.orelse:
                 val += 1
+                for node in tree_node.orelse: self.generic_visit(node)
                 tree_node.orelse = self.wrap_in_inner('if', counter, val, tree_node.orelse)
 
 
     def visit_If(self, tree_node):
-        self.generic_visit(tree_node)
         global if_counter
         if_counter += 1
         self.process_if(tree_node, counter=if_counter)
