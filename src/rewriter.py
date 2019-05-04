@@ -86,13 +86,16 @@ class Rewriter(ast.NodeTransformer):
         tree_node.body = self.wrap_in_inner('while', counter, 0, body)
         return self.wrap_in_outer('while', counter, tree_node)
 
+    def wrap(self, node):
+        return ast.Call(func=ast.Name(id='taint_wrap__', ctx=ast.Load()), args=[node], keywords=[])
+
     def visit_Compare(self, tree_node):
         left = tree_node.left
         if not tree_node.ops or not isinstance(tree_node.ops[0], ast.In):
             return tree_node
         mod_val = ast.Call(
             func=ast.Attribute(
-                value=left,
+                value=self.wrap(left),
                 attr='in_'),
             args=tree_node.comparators,
             keywords=[])
@@ -115,6 +118,7 @@ from mimid_context import scope__, stack__, method__
 import json
 import sys
 import Tracer
+from Tracer import taint_wrap__
 if __name__ == "__main__":
     mystring = sys.argv[1]
     #restrict = {'files': ['build/s_parser.py']}

@@ -83,6 +83,19 @@ class xtstr(ctstr):
     def __hash__(self):
         return hash(str(self))
 
+class in_wrap:
+    def __init__(self, s):
+        self.s = s
+
+    def in_(self, s):
+        return self.s in s
+
+def taint_wrap__(st):
+    if isinstance(st, str):
+        return in_wrap(st)
+    else:
+        return st
+
 import inspect
 from taints import tstr
 
@@ -103,7 +116,7 @@ for name, fn in inspect.getmembers(str, callable):
     if name not in defined_xtstr and name not in {
             '__init__', '__str__', '__eq__', '__ne__', '__class__', '__new__',
             '__setattr__', '__len__', '__getattribute__', '__le__', 'lower',
-            'strip', 'lstrip', 'rstrip', '__iter__', '__getitem__', '__add__'}:
+            'strip', 'lstrip', 'rstrip', '__iter__', '__getitem__', '__add__', 'split', 'isascii'}:
         setattr(xtstr, name, make_str_abort_wrapper(fn))
 
 class Context:
