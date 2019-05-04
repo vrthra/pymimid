@@ -82,3 +82,13 @@ build: ; mkdir -p $@
 
 clean:
 	rm -rf build
+
+
+save:
+	mkdir -p .backup
+	for i in build/*_refine.json; do j="$$(basename $$i)";k="$$(md5 -q $$i)"; cp $$i ./.backup/"$$j"_"$$k"; done
+
+
+calc-merge:
+	for i in $$(cat sample/calc.csv); do echo $$i; make build/calc_refine.json arg='"$$i"'; make save; rm -rf build; done
+	$(python) ./src/merge.py .backup/calc_*
