@@ -498,3 +498,8 @@ class ctstr(ctstr):
                 if self == item:
                     return True
             return False
+
+class ctstr(ctstr):
+    def split(self, sep=None, maxsplit=-1):
+        self.add_instr(Op.IN, self, sep)
+        return super().split(sep, maxsplit)

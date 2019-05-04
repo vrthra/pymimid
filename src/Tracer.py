@@ -116,7 +116,7 @@ for name, fn in inspect.getmembers(str, callable):
     if name not in defined_xtstr and name not in {
             '__init__', '__str__', '__eq__', '__ne__', '__class__', '__new__',
             '__setattr__', '__len__', '__getattribute__', '__le__', 'lower',
-            'strip', 'lstrip', 'rstrip', '__iter__', '__getitem__', '__add__', 'split', 'isascii'}:
+            'strip', 'lstrip', 'rstrip', '__iter__', '__getitem__', '__add__', 'isascii'}:
         setattr(xtstr, name, make_str_abort_wrapper(fn))
 
 class Context:
