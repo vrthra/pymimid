@@ -70,19 +70,21 @@ class Rewriter(ast.NodeTransformer):
     def visit_If(self, tree_node):
         global if_counter
         if_counter += 1
+        counter = if_counter
         self.process_if(tree_node, counter=if_counter)
-        return self.wrap_in_outer('if', if_counter, tree_node)
+        return self.wrap_in_outer('if', counter, tree_node)
 
 
     def visit_While(self, tree_node):
         self.generic_visit(tree_node)
         global while_counter
         while_counter += 1
+        counter = while_counter
         test = tree_node.test
         body = tree_node.body
         assert not tree_node.orelse
-        tree_node.body = self.wrap_in_inner('while', while_counter, 0, body)
-        return self.wrap_in_outer('while', while_counter, tree_node)
+        tree_node.body = self.wrap_in_inner('while', counter, 0, body)
+        return self.wrap_in_outer('while', counter, tree_node)
 
     def visit_Compare(self, tree_node):
         left = tree_node.left
