@@ -40,6 +40,14 @@ build/urljava_trace.json: build/urljava_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
+#build/datetime_trace.json: arg='HH[:MM[:SS[.fff[fff]]]][+HH:MM[:SS[.ffffff]]]'
+#build/datetime_trace.json: arg='10:20:41.142561+11:21:29.161278'
+build/datetime_trace.json: arg='10:20:41.142561'
+build/datetime_trace.json: build/datetime_parser.py | build
+	$(python) $< $(arg) > $@_
+	mv $@_ $@
+
+
 
 # Get the derivation tree out
 build/%_tree.json: build/%_trace.json | build
