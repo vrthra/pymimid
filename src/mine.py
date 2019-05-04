@@ -88,6 +88,11 @@ def no_overlap(arr):
         else:
             overlaps = has_overlap(my_ranges, s, e)
             if overlaps:
+                # unlike include which can happen only once in a set of
+                # non-overlapping ranges, overlaps can happen on multiple
+                # parts. One option is to simply remove the overlapping indexes
+                # alone from the parent method if parent method can be
+                # identified.
                 assert False
             else:
                 my_ranges[(s, e)] = a
