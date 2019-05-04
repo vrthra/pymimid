@@ -97,7 +97,6 @@ save:
 build/%-grammar.json:
 	for i in sample/input/$*/*.csv; do echo $$i; make clean; make build/$*_refine.json arg='"$$i"'; make save; done
 	$(python) ./src/merge.py .backup/$*_* > $@_
-	cat $@_ | ./src/show_grammar.py
 	mv $@_ $@
 
 build/%-readable.txt: build/%-grammar.json

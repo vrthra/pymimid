@@ -43,9 +43,47 @@ def summarize_repeating(my_tokens):
         tokens = tokens[i+j+1:]
     return shrink_whiles(res)
 
+def replace(grammar, key, by):
+    del grammar[key]
+    for k in grammar:
+        rules = grammar[k]
+        new_rules = []
+        for rule in rules:
+            new_rule = []
+            for token in rule:
+                if token == key:
+                    new_rule.append(by)
+                else:
+                    new_rule.append(token)
+            new_rules.append(new_rule)
+        grammar[k] = new_rules
+    return grammar
 
-def readable(grammar):
+
+def simplify(my_grammar):
+    to_replace = {}
+    for k in my_grammar:
+        rules = my_grammar[k]
+        if len(rules) > 1:
+            continue
+        else:
+            rule = rules[0]
+            if len(rule) > 1:
+                continue
+            else:
+                to_replace[k] = rule[0]
+    del to_replace['<START>']
+    for key in to_replace:
+        replace(my_grammar, key, to_replace[key])
+    return my_grammar
+
+
+
+def readable(my_grammar):
     # first simplify and then do the repeating.
+    # simplify involves, looping through the grammar, looking for single defs.
+    # Then replacing the rule witi its definitions.
+    grammar  = simplify(my_grammar)
     for k in grammar:
         print(k)
         alt = grammar[k]
