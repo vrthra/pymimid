@@ -123,13 +123,29 @@ def to_tree(node, my_str):
 
 # What we actually need is that we can not replace last comparisons
 # if it came from a child.
+HEURISTIC=True
 def last_comparisons(comparisons):
     last_cmp_only = {}
+    last_idx = {}
+
+    # get the last indexes compared in methods.
     for idx, char, mid in comparisons:
-        if idx in last_cmp_only:
-            if last_cmp_only[idx] > mid:
-                # do not clobber children
-                continue
+        if mid in last_idx:
+            if idx > last_idx[mid]:
+                last_idx[mid] = idx
+        else:
+            last_idx[mid] = idx
+
+    for idx, char, mid in comparisons:
+        if HEURISTIC:
+            if idx in last_cmp_only:
+                if last_cmp_only[idx] > mid:
+                    # do not clobber children unless it was the last character
+                    # for that child.
+                    if last_idx[mid] > idx:
+                        # if it was the last index, may be the child used it
+                        # as a boundary check.
+                        continue
         last_cmp_only[idx] = mid
     return last_cmp_only
 
