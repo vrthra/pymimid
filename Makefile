@@ -93,3 +93,6 @@ calc-merge:
 	for i in $$(cat sample/calc.csv); do echo $$i; make clean; make build/calc_refine.json arg='"$$i"'; make save; done
 	$(python) ./src/merge.py .backup/calc_* > build/calc-grammar.py
 	cat build/calc-grammar.py | ./src/show_grammar.py
+
+test:
+	for i in calc urljava microjson; do echo $$i; make clean; make show target=$$i; done
