@@ -1,5 +1,5 @@
 python=python3
-export PYTHONPATH=./src
+export PYTHONPATH=./src:./lib
 
 .SECONDARY:
 
@@ -47,6 +47,10 @@ build/datetime_trace.json: build/datetime_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
+build/netrc_trace.json: arg='machine mymachine.labkey.org login user@labkey.org password mypassword'
+build/netrc_trace.json: build/netrc_parser.py | build
+	$(python) $< $(arg) > $@_
+	mv $@_ $@
 
 
 # Get the derivation tree out
