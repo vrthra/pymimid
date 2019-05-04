@@ -45,6 +45,7 @@ def summarize_repeating(my_tokens):
 
 
 def readable(grammar):
+    # first simplify and then do the repeating.
     for k in grammar:
         print(k)
         alt = grammar[k]
@@ -52,7 +53,7 @@ def readable(grammar):
         for rule in alt:
             results.add(str(summarize_repeating(rule)))
         for r in results:
-            print("| \t %s" % r)
+            print("   | %s" % r)
 
 
 import json
