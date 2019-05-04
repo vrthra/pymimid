@@ -75,23 +75,51 @@ def simplify(my_grammar):
     del to_replace['<START>']
     for key in to_replace:
         replace(my_grammar, key, to_replace[key])
-    return my_grammar
+
+    # remove redundant rules.
+    for key in my_grammar:
+        rules = my_grammar[key]
+        new_rules = {}
+        for rule in rules:
+            new_rules[str(rule)] = rule
+        my_grammar[key] = list(new_rules.values())
+    return to_replace
 
 
+def remove_redundant(grammar):
+    # keys with exactly same rules get removed.
+    seen = {}
+    to_replace = {}
+    for k in grammar:
+        key = str(sorted(grammar[k]))
+        if key in seen:
+            to_replace[k] = seen[key][0]
+        else:
+            seen[key] = (k, grammar[k])
 
-def readable(my_grammar):
+    for key in to_replace:
+        replace(grammar, key, to_replace[key])
+    return to_replace
+
+
+def readable(grammar):
     # first simplify and then do the repeating.
     # simplify involves, looping through the grammar, looking for single defs.
     # Then replacing the rule witi its definitions.
-    grammar  = simplify(my_grammar)
+    cont = True
+    while cont:
+        cont = simplify(grammar)
+        remove_redundant(grammar)
+
     for k in grammar:
         print(k)
         alt = grammar[k]
         results = set()
         for rule in alt:
-            results.add(str(summarize_repeating(rule)))
+            #results.add(str(summarize_repeating(rule)))
+            results.add(''.join(rule))
         for r in results:
-            print("   | %s" % r)
+            print("   | %s" % repr(r))
 
 
 import json
