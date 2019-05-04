@@ -100,5 +100,9 @@ build/%-grammar.json:
 	cat $@_ | ./src/show_grammar.py
 	mv $@_ $@
 
+build/%-readable.txt: build/%-grammar.json
+	$(python) ./src/readable.py $< | tee $@_
+	mv $@_ $@
+
 test:
 	set -e; for i in calc urljava urlpy microjson; do echo $$i; make clean; make show target=$$i; done
