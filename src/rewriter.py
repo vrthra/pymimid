@@ -120,7 +120,9 @@ import sys
 import Tracer
 from Tracer import taint_wrap__
 if __name__ == "__main__":
-    mystring = sys.argv[1]
+    with open(sys.argv[1]) as f:
+        mystring = f.read().strip()
+        print(repr(mystring), file=sys.stderr)
     #restrict = {'files': ['build/s_parser.py']}
     restrict = {'files': [sys.argv[0]]}
     with Tracer.Tracer(mystring, restrict) as tracer:

@@ -25,22 +25,22 @@ build/%_trace.json: build/%_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
-build/calc_trace.json: arg='(123+133*(12-3)/9+8)+33'
+build/calc_trace.json: arg=sample/input/calc/1.csv
 build/calc_trace.json: build/calc_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
-build/microjson_trace.json: arg='{"mykey1": [1, 2, 3], "mykey2": null}'
+build/microjson_trace.json: arg=sample/input/microjson/1.csv
 build/microjson_trace.json: build/microjson_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
-build/urljava_trace.json: arg='http://me:mexico@www.google.com:8080/my/path/q?searc=key&attr=newkey\#frag'
+build/urljava_trace.json: arg=sample/input/urljava/1.csv
 build/urljava_trace.json: build/urljava_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
-build/urlpy_trace.json: arg='http://me:mexico@www.google.com:8080/my/path/q?searc=key&attr=newkey\#frag'
+build/urlpy_trace.json: arg=sample/input/urlpy/1.csv
 build/urlpy_trace.json: build/urlpy_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
@@ -75,7 +75,7 @@ build/%_refine.json: build/%_generalize.json | build
 
 
 # |
-# Learn the right hand regular expressions from trees.
+# Actively learn the right hand regular expressions from trees.
 build/%_learn.json: build/%_refine.json | build
 	$(python) src/active_learn.py $< > $@_
 	mv $@_ $@
@@ -94,10 +94,11 @@ save:
 	for i in build/*_refine.json; do j="$$(basename $$i)";k="$$(md5 -q $$i)"; cp $$i ./.backup/"$$j"_"$$k"; done
 
 
-calc-merge:
-	for i in $$(cat sample/calc.csv); do echo $$i; make clean; make build/calc_refine.json arg='"$$i"'; make save; done
-	$(python) ./src/merge.py .backup/calc_* > build/calc-grammar.py
-	cat build/calc-grammar.py | ./src/show_grammar.py
+build/%-grammar.json:
+	for i in sample/input/$*/*.csv; do echo $$i; make clean; make build/$*_refine.json arg='"$$i"'; make save; done
+	$(python) ./src/merge.py .backup/$*_* > $@_
+	cat $@_ | ./src/show_grammar.py
+	mv $@_ $@
 
 test:
 	set -e; for i in calc urljava urlpy microjson; do echo $$i; make clean; make show target=$$i; done
