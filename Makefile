@@ -63,23 +63,15 @@ build/%_tree.json: build/%_trace.json | build
 	$(python) src/mine.py $<  > $@_
 	mv $@_ $@
 
-# Learn the right hand regular expressions from trees.
-build/%_generalize.json: build/%_tree.json | build
-	ERROR -- remove.
-	$(python) src/generalize_iter.py $< > $@_
-	mv $@_ $@
-
 # Get the grammar out
-build/%_refine.json: build/%_generalize.json | build
+build/%_refine.json: build/%_tree.json | build
 	$(python) src/refine.py $< > $@_
 	mv $@_ $@
 
-
-# |
-# Actively learn the right hand regular expressions from trees.
-build/%_learn.json: build/%_refine.json | build
-	$(python) src/active_learn.py $< > $@_
-	mv $@_ $@
+# Now, abstract the while loops and ifs with regex so that
+# we can remove redundant loop indices. We may need to remove
+# looop indices beyond a certain point simply because we
+# do not have enough samples.
 
 show: all-$(target)
 	@for i in build/*_refine.json; do echo $$i; ./bin/show $$i grammar; done
