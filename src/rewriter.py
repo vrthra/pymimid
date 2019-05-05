@@ -121,7 +121,7 @@ from Tracer import taint_wrap__
 WITH_TAINT = True
 if __name__ == "__main__":
     with open(sys.argv[1]) as f:
-        mystring = f.read().strip()
+        mystring = f.read().strip().replace('\\n', ' ')
         print(repr(mystring), file=sys.stderr)
     restrict = {'files': [sys.argv[0]]}
     if WITH_TAINT:
