@@ -61,9 +61,14 @@ build/netrc_trace.json: build/netrc_parser.py | build
 GENERALIZE=yes
 ifeq ($(GENERALIZE), yes)
 # Get the derivation tree out
-build/%_tree.json: build/%_trace.json | build
-	$(python) src/mine.py $< | ./src/generalize_iter.py > $@_
+build/%_ngtree.json: build/%_trace.json | build
+	$(python) src/mine.py $< > $@_
 	mv $@_ $@
+
+build/%_tree.json: build/%_ngtree.json | build
+	$(python) src/generalize_iter.py $< > $@_
+	mv $@_ $@
+
 else
 build/%_tree.json: build/%_trace.json | build
 	$(python) src/mine.py $<  > $@_
@@ -96,11 +101,11 @@ clobber: clean
 
 save:
 	mkdir -p .backup
-	for i in build/*_refine.json; do j="$$(basename $$i)";k="$$(md5 -q $$i)"; cp $$i ./.backup/"$$j"_"$$k"; done
+	for i in build/*.json; do j="$$(basename $$i)";k="$$(md5 -q $$i)"; cp $$i ./.backup/"$$j"_"$$k"_$(name); done
 
 
 build/%-egrammar.json:
-	for i in sample/input/$*/*.csv; do echo $$i; f="$$(basename $$i)"; echo $$f; make clean; make build/$*_refine.json arg="$$f"; make save; done
+	for i in sample/input/$*/*.csv; do echo $$i; f="$$(basename $$i)"; echo $$f; make clean; make build/$*_refine.json arg="$$f"; make save name=$$f; done
 	$(python) ./src/merge.py .backup/$*_* > $@_
 	mv $@_ $@
 
