@@ -65,6 +65,7 @@ build/%_tree.json: build/%_trace.json | build
 
 # Learn the right hand regular expressions from trees.
 build/%_generalize.json: build/%_tree.json | build
+	ERROR -- remove.
 	$(python) src/generalize_iter.py $< > $@_
 	mv $@_ $@
 
