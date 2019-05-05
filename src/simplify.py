@@ -1,7 +1,15 @@
 #!/usr/bin/env python3
 import to_regex
+import pudb
+br = pudb.set_trace
 
 REGEX_DEFS = {}
+
+def is_regex_a_subset(regex, seen):
+    for R in seen:
+        if R.sub_match_regex(regex):
+            return R
+    return False
 
 def simplify_grammar(grammar):
     new_grammar = {}
@@ -12,9 +20,12 @@ def simplify_grammar(grammar):
             seen = {}
             new_rule = []
             for token in rule:
-                regex = to_regex.token_to_regex(grammar, token)
-                if regex in seen:
-                    new_token = seen[regex]
+                #if '0+12' in token: br()
+                #if '0+26' in token: br()
+                regex = to_regex.token_to_regexz(grammar, token)
+                s =  is_regex_a_subset(regex, seen)
+                if s:
+                    new_token = seen[s]
                     new_rule.append(new_token)
                 else:
                     seen[regex] = token

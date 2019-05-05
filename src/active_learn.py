@@ -7,62 +7,7 @@ import itertools
 import mingen
 import to_grammar
 import check
-
-# What samples to use for a{n} to conirm that a* is a valid regex.
-SAMPLES_FOR_REP = [0, 1, 2]
-
-class Regex:
-    def to_rules(self):
-        if isinstance(self, Alt):
-            for a1 in self.a1.to_rules():
-                yield a1
-            for a2 in self.a2.to_rules():
-                yield a2
-        elif  isinstance(self, Rep):
-            for a3 in self.a.to_rules():
-                for n in SAMPLES_FOR_REP:
-                    yield a3 * n
-        elif  isinstance(self, Seq):
-            for a4 in self.arr[0].to_rules():
-                if self.arr[1:]:
-                    for a5 in Seq(self.arr[1:]).to_rules():
-                        yield a4 + a5
-                else:
-                    yield a4
-
-        elif  isinstance(self, One):
-            assert not isinstance(self.o, Regex)
-            yield self.o
-        else:
-            assert False
-
-    def __str__(self):
-        if isinstance(self, Alt):
-            return "(%s|%s)" % (str(self.a1), str(self.a2))
-        elif  isinstance(self, Rep):
-            return "(%s)*" % self.a
-        elif  isinstance(self, Seq):
-            if len(self.arr) == 1:
-                return "(%s)" % ''.join(str(a) for a in self.arr)
-            else:
-                return "(%s)" % ''.join(str(a) for a in self.arr)
-        elif  isinstance(self, One):
-            return ''.join(str(o).replace('*', '[*]').replace('(', '[(]').replace(')', '[)]') for o in self.o)
-        else:
-            assert False
-
-class Alt(Regex):
-    def __init__(self, a1, a2): self.a1, self.a2 = a1, a2
-    def __repr__(self): return "(%s|%s)" % (self.a1, self.a2)
-class Rep(Regex):
-    def __init__(self, a): self.a = a
-    def __repr__(self): return "(%s)*" % self.a
-class Seq(Regex):
-    def __init__(self, arr): self.arr = arr
-    def __repr__(self): return "(%s)" % ' '.join([repr(a) for a in self.arr if a])
-class One(Regex):
-    def __init__(self, o): self.o = o
-    def __repr__(self): return repr(self.o) if self.o else ''
+from to_regex import Regex, Alt, Rep, Seq, One
 
 
 def gen_alt(arr):
