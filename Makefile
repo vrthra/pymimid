@@ -106,7 +106,7 @@ save:
 
 build/%-egrammar.json:
 	for i in sample/input/$*/*.csv; do echo $$i; f="$$(basename $$i)"; echo $$f; make clean; make build/$*_refine.json arg="$$f"; make save name=$$f; done
-	$(python) ./src/merge.py .backup/$*_* > $@_
+	$(python) ./src/merge.py .backup/$*_refine* > $@_
 	mv $@_ $@
 
 build/%-grammar.json: build/%-egrammar.json

@@ -23,16 +23,6 @@ def simplify_grammar(grammar):
         new_grammar[k] = new_alts
     return new_grammar
 
-def apply_recursion_heuristic(grammar):
-    for k in grammar:
-        for rule in grammar[k]:
-            while_stack = []
-            for token in rule:
-                if 'while' in token:
-                    while_stack.append(token)
-                else:
-                    while_stack.clear()
-
 import json
 def main(arg):
     with open(arg) as f:
