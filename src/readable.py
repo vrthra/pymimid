@@ -102,7 +102,7 @@ def remove_redundant(grammar):
     return to_replace
 
 
-def readable(grammar):
+def old_readable(grammar):
     # first simplify and then do the repeating.
     # simplify involves, looping through the grammar, looking for single defs.
     # Then replacing the rule witi its definitions.
@@ -120,6 +120,15 @@ def readable(grammar):
             results.add(''.join(rule))
         for r in results:
             print("   | %s" % repr(r))
+
+import to_regex
+def readable(grammar):
+    for k in grammar:
+        if ':while_' in k or ':if_' in k:
+            continue
+        print(k)
+        for rule in grammar[k]:
+            print(" |  ",to_regex.rule_to_regex(grammar, rule))
 
 
 import json
