@@ -87,9 +87,13 @@ save:
 	for i in build/*_refine.json; do j="$$(basename $$i)";k="$$(md5 -q $$i)"; cp $$i ./.backup/"$$j"_"$$k"; done
 
 
-build/%-grammar.json:
+build/%-egrammar.json:
 	for i in sample/input/$*/*.csv; do echo $$i; make clean; make build/$*_refine.json arg='"$$i"'; make save; done
 	$(python) ./src/merge.py .backup/$*_* > $@_
+	mv $@_ $@
+
+build/%-grammar.json: build/%-egrammar.json
+	$(python) ./src/simplify.py $< > $@_
 	mv $@_ $@
 
 build/%-readable.txt: build/%-grammar.json
