@@ -58,7 +58,7 @@ build/netrc_trace.json: build/netrc_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
-GENERALIZE=yes
+GENERALIZE=no
 ifeq ($(GENERALIZE), yes)
 # Get the derivation tree out
 build/%_ngtree.json: build/%_trace.json | build

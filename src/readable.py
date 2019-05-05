@@ -135,9 +135,12 @@ def find_normal_repetition(rule):
         if not rep:
             rep.append(token)
         else:
-            if token != rep[0]:
-                rep.append(token)
-            else:
+            if token in rep:
+                for i, r in enumerate(rep):
+                    if r == token:
+                        break
+                res.extend(rep[:i])
+                rep = rep[i:]
                 if not res:
                     res.append(rep)
                 else:
@@ -146,16 +149,18 @@ def find_normal_repetition(rule):
                     else:
                         pass
                 rep = [token]
+            else:
+                rep.append(token)
     if not res or rep != res[-1]:
         res.extend(rep)
     return res
 
 def find_repetition(rule):
-    rule = find_while_repetition(rule)
-    updated_rule = ["(%s)+" % ''.join(i) if isinstance(i, list) else str(i) for i in rule]
-    new_rule = find_normal_repetition(updated_rule)
-    updated_rule = ["(%s)+" % ''.join(i) if isinstance(i, list) else str(i) for i in new_rule]
-    return ' '.join(updated_rule)
+    #rule = find_while_repetition(rule)
+    #rule = ["(%s)+" % ''.join(i) if isinstance(i, list) else i[1] for i in rule]
+    rule = find_normal_repetition([t for l,t in rule])
+    rule = ["(%s)+" % ''.join(i) if isinstance(i, list) else i for i in rule]
+    return '   '.join(rule)
 
 import to_regex
 def readable(grammar):

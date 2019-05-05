@@ -63,6 +63,7 @@ class Seq(Regex):
 
     def _sub_match_regex(self, another):
         if isinstance(another, Altz):
+            if not len(another.arr) == 1: return False
             for a in another.arr:
                 if self.sub_match_regex(a):
                     return True
@@ -91,6 +92,7 @@ class One(Regex):
                 return False
             return self.sub_match_regex(another.arr[0])
         elif isinstance(another, Altz):
+            if len(another.arr) != 1: return False
             for a in another.arr:
                 if self.sub_match_regex(a):
                     return True
@@ -114,11 +116,14 @@ class Altz(Regex):
                     return True
             return False
         else:
-            for a in self.arr:
-                for b in another.arr:
+            for b in another.arr:
+                br = True
+                for a in self.arr:
                     if a.sub_match_regex(b):
-                        return True
-            return False
+                        br = False
+                if br:
+                    return False
+            return True
 
 
 def is_method(token):
