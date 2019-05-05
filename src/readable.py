@@ -101,25 +101,61 @@ def remove_redundant(grammar):
         replace(grammar, key, to_replace[key])
     return to_replace
 
+def find_while_repetition(rule):
+    new_rule = []
+    res = []
+    rep = []
+    my_dict = dict(rule)
+    for token, regex in rule:
+        if 'while' in token:
+            if not rep:
+                rep.append(regex)
+            else:
+                if regex != rep[0]:
+                    rep.append(regex)
+                else:
+                    if not res:
+                        res.append(rep)
+                    else:
+                        if rep != res[-1]:
+                            res.append(rep)
+                        else:
+                            pass
+                    rep = [regex]
+        else:
+            res.append(regex)
+    if not res or rep != res[-1]:
+        res.extend(rep)
+    return res
 
-def old_readable(grammar):
-    # first simplify and then do the repeating.
-    # simplify involves, looping through the grammar, looking for single defs.
-    # Then replacing the rule witi its definitions.
-    cont = True
-    while cont:
-        cont = simplify(grammar)
-        remove_redundant(grammar)
+def find_normal_repetition(rule):
+    rep = []
+    res = []
+    for token in rule:
+        if not rep:
+            rep.append(token)
+        else:
+            if token != rep[0]:
+                rep.append(token)
+            else:
+                if not res:
+                    res.append(rep)
+                else:
+                    if rep != res[-1]:
+                        res.append(rep)
+                    else:
+                        pass
+                rep = [token]
+    if not res or rep != res[-1]:
+        res.extend(rep)
+    return res
 
-    for k in grammar:
-        print(k)
-        alt = grammar[k]
-        results = set()
-        for rule in alt:
-            #results.add(str(summarize_repeating(rule)))
-            results.add(''.join(rule))
-        for r in results:
-            print("   | %s" % repr(r))
+def find_repetition(rule):
+    rule = find_while_repetition(rule)
+    updated_rule = ["(%s)+" % ''.join(i) if isinstance(i, list) else str(i) for i in rule]
+    new_rule = find_normal_repetition(updated_rule)
+    updated_rule = ["(%s)+" % ''.join(i) if isinstance(i, list) else str(i) for i in new_rule]
+    return ' '.join(updated_rule)
 
 import to_regex
 def readable(grammar):
@@ -129,7 +165,10 @@ def readable(grammar):
         print(k, " ::=")
         alts = set()
         for rule in grammar[k]:
-            alts.add(to_regex.rule_to_regex(grammar, rule))
+            new_rule = []
+            for token in rule:
+                new_rule.append((token, to_regex.token_to_regex(grammar, token)))
+            alts.add(find_repetition(new_rule))
         for r in sorted(alts):
             print(" | ", r)
 
