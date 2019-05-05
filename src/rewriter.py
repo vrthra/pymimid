@@ -119,14 +119,20 @@ import json
 import sys
 import Tracer
 from Tracer import taint_wrap__
+WITH_TAINT = True
 if __name__ == "__main__":
     with open(sys.argv[1]) as f:
         mystring = f.read().strip()
         print(repr(mystring), file=sys.stderr)
-    #restrict = {'files': ['build/s_parser.py']}
     restrict = {'files': [sys.argv[0]]}
-    with Tracer.Tracer(mystring, restrict) as tracer:
-        main(tracer())
+    if WITH_TAINT:
+        with Tracer.Tracer(mystring, restrict) as tracer:
+            main(tracer())
+    else:
+        # DEBUG without taints:
+        Tracer.trace_init()
+        main(mystring)
+        sys.exit(0)
     assert tracer.inputstr.comparisons
     print(json.dumps({
         'comparisons':Tracer.convert_comparisons(tracer.inputstr.comparisons, mystring),
@@ -136,7 +142,6 @@ if __name__ == "__main__":
     # This generates a trace file if redirected to trace.json
     # use ./src/mine.py trace.json to get the derivation tree.
 """
-    #print(footer % (os.path.splitext(os.path.basename(args[1]))[0], repr(args[1])))
     print(footer % repr(args[1]))
 
 import sys
