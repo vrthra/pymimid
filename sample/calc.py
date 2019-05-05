@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 import string
+def is_digit(i):
+    return i in list(string.digits)
 def parse_num(s,i):
     n = ''
-    while s[i:] and s[i] in (list(string.digits)):
+    while s[i:] and is_digit(s[i]):
         n += s[i]
         i = i +1
     return i,n
