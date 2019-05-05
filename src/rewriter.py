@@ -16,26 +16,25 @@ class Rewriter(ast.NodeTransformer):
         method_name_expr = ast.Str(methods[-1])
         args = [method_name_expr]
         scope_expr = ast.Call(func=ast.Name(id='method__', ctx=ast.Load()), args=args, keywords=[])
-        return [ast.With(items=[ast.withitem(scope_expr, None)], body=body)]
+        return [ast.With(items=[ast.withitem(scope_expr, ast.Name(id='_method__'))], body=body)]
 
     def wrap_in_outer(self, name, counter, node):
         name_expr = ast.Str(name)
         counter_expr = ast.Num(counter)
-        method_name_expr = ast.Str(methods[-1])
-        args = [name_expr, counter_expr, method_name_expr]
+        method_id = ast.Name(id='_method__')
+        args = [name_expr, counter_expr, method_id]
         scope_expr = ast.Call(func=ast.Name(id='stack__', ctx=ast.Load()),
                 args=args, keywords=[])
-        return ast.With(items=[ast.withitem(scope_expr, None)], body=[node])
+        return ast.With(items=[ast.withitem(scope_expr, ast.Name(id='%s_%d_stack__' % (name, counter)))], body=[node])
 
     def wrap_in_inner(self, name, counter, val, body):
-        name_expr = ast.Str(name)
-        counter_expr = ast.Num(counter)
-        method_name_expr = ast.Str(methods[-1])
         val_expr = ast.Num(val)
-        args = [name_expr, counter_expr, method_name_expr, val_expr]
+        stack_iter = ast.Name(id='%s_%d_stack__' % (name, counter))
+        method_id = ast.Name(id='_method__')
+        args = [val_expr, stack_iter, method_id]
         scope_expr = ast.Call(func=ast.Name(id='scope__', ctx=ast.Load()),
                 args=args, keywords=[])
-        return [ast.With(items=[ast.withitem(scope_expr, None)], body=body)]
+        return [ast.With(items=[ast.withitem(scope_expr, ast.Name(id='%s_%d_%d_scope__' % (name, counter, val)))], body=body)]
 
 
 

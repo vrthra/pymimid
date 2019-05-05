@@ -1,49 +1,53 @@
 import Tracer
-SCOPES = {}
 
 def to_key(method, name, num):
     return '%s:%s_%s' % (method, name, num)
 
 class method__:
-    def __init__(self, method):
-        self.method = method
-        if method not in SCOPES: SCOPES[method] = []
+    def __init__(self, name):
+        self.name = name
 
     def __enter__(self):
-        SCOPES[self.method].append({})
+        self.stack = []
         return self
 
     def __exit__(self, *args):
-        SCOPES[self.method].pop()
+        pass
 
 class stack__:
-    def __init__(self, name, num, method):
-        self.stack_iter = SCOPES[method][-1]
-        self.name, self.num, self.method = name, num, method
+    def __init__(self, name, num, method_i):
+        self.method_stack = method_i.stack
+        self.name, self.num, self.method = name, num, method_i.name
         self.prefix = to_key(self.method, self.name, self.num)
 
     def __enter__(self):
-        self.stack_iter[self.prefix] = {}
+        if self.name in {'while'}:
+            self.method_stack.append(0)
+        elif self.name in {'if'}:
+            self.method_stack.append('_')
+        else:
+            assert False
         return self
 
     def __exit__(self, *args):
-        del self.stack_iter[self.prefix]
+        self.method_stack.pop()
 
 class scope__:
-    def __init__(self, name, num, method, alt):
-        self.name, self.num, self.method, self.alt = name, num, method, alt
-        kprefix = to_key(self.method, self.name, self.num)
-        stack_iter = SCOPES[method][-1]
-        self.scope_iter = stack_iter[kprefix]
-        if self.alt not in self.scope_iter: self.scope_iter[self.alt] = 0
+    def __init__(self, alt, stack_i, method_i):
+        self.name, self.num, self.method, self.alt = stack_i.name, stack_i.num, stack_i.method, alt
+        self.method_stack = method_i.stack
 
     def __enter__(self):
-        # increment method and set current method
-        uid = '+'.join([str(v) for k,v in self.scope_iter.items()])
+        if self.name in {'while'}:
+            self.method_stack[-1] += 1
+        elif self.name in {'if'}:
+            pass
+        else:
+            assert False, self.name
+        uid = '+'.join([str(v) for v in self.method_stack])
         Tracer.trace_call('%s:%s_%s %s+%s' % (self.method, self.name, self.num, self.alt, uid))
+        return self
 
     def __exit__(self, *args):
-        #pop and set current method
-        if self.name in {'while'}: self.scope_iter[self.alt] += 1
         Tracer.trace_return()
 
