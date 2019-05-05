@@ -145,10 +145,29 @@ def token_to_regex(grammar, token):
 def rule_to_regex(grammar, rule):
     return " ".join([token_to_regex(grammar, r) for r in rule])
 
+import string
 def alts_to_regex(grammar, alts):
     if len(alts) == 1:
         return "%s" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
     else:
+        r = set(len(a) for a in alts)
+        if r == {1}:
+            r = set(a[0] for a in alts)
+            t = {type(a) for a in r}
+            if t == {str}:
+                patterns = {
+                        "[0-9]": string.digits,
+                        "[a-z]": string.ascii_lowercase,
+                        "[A-Z]": string.ascii_uppercase,
+                        "[a-zA-Z]": string.ascii_letters,
+                        "[a-zA-Z0-9]": string.ascii_letters + string.digits,
+                        '[-a-zA-Z0-9_". +#()=/*:?,@!]': string.ascii_letters + string.digits + '_". +-#()=/*:?,@!',
+                        }
+                for k in patterns:
+                    p  = set(list(patterns[k]))
+                    if p > r:
+                        return k
+                ascii_lower =  set(list(string.ascii_lowercase))
         return "(%s)" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
 
 def rule_to_regexz(grammar, rule):
