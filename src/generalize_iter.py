@@ -78,9 +78,9 @@ def replace_all():
     for i, j in TO_REPLACE:
         j[0] = i[0]
 
-def main(arg):
+def main():
     global TREE
-    j = json.load(open(arg))
+    j = json.load(sys.stdin)
     check.init_module(j['original'])
     TREE = j['tree']
     generalize(TREE)
@@ -89,4 +89,4 @@ def main(arg):
     json.dump(j, sys.stdout)
 
 import sys
-main(sys.argv[1])
+main()

@@ -127,9 +127,9 @@ def readable(grammar):
         if ':while_' in k or ':if_' in k:
             continue
         print(k, " ::=")
-        alts = []
+        alts = set()
         for rule in grammar[k]:
-            alts.append(to_regex.rule_to_regex(grammar, rule))
+            alts.add(to_regex.rule_to_regex(grammar, rule))
         for r in sorted(alts):
             print(" | ", r)
 

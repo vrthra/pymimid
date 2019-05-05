@@ -19,6 +19,6 @@ def rule_to_regex(grammar, rule):
 
 def alts_to_regex(grammar, alts):
     if len(alts) == 1:
-        return "%s" % "|".join(sorted([rule_to_regex(grammar, a) for a in alts]))
+        return "%s" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
     else:
-        return "(%s)" % "|".join(sorted([rule_to_regex(grammar, a) for a in alts]))
+        return "(%s)" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))

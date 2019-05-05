@@ -23,11 +23,25 @@ def simplify_grammar(grammar):
         new_grammar[k] = new_alts
     return new_grammar
 
+def apply_recursion_heuristic(grammar):
+    for k in grammar:
+        for rule in grammar[k]:
+            while_stack = []
+            for token in rule:
+                if 'while' in token:
+                    while_stack.append(token)
+                else:
+                    while_stack.clear()
+
 import json
 def main(arg):
     with open(arg) as f:
         g = json.load(f)
-    new_grammar = simplify_grammar(g)
+    simplified_grammar = simplify_grammar(g)
+    # HEURISTIC
+    # if we find a while, find the repeat after, and replace all remaining instances of the while with
+    # the order identified from the beginning.
+    new_grammar = simplified_grammar #apply_recursion_heuristic(simplified_grammar)
     json.dump(new_grammar, sys.stdout)
 
 import sys

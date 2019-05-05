@@ -1,3 +1,4 @@
+export
 python=python3
 export PYTHONPATH=./src:./lib
 
@@ -58,10 +59,16 @@ build/netrc_trace.json: build/netrc_parser.py | build
 	mv $@_ $@
 
 
+ifeq ($(GENERALIZE), yes)
 # Get the derivation tree out
+build/%_tree.json: build/%_trace.json | build
+	$(python) src/mine.py $< | ./src/generalize_iter.py > $@_
+	mv $@_ $@
+else
 build/%_tree.json: build/%_trace.json | build
 	$(python) src/mine.py $<  > $@_
 	mv $@_ $@
+endif
 
 # Get the grammar out
 build/%_refine.json: build/%_tree.json | build
@@ -102,7 +109,7 @@ build/%-grammar.json: build/%-egrammar.json
 	mv $@_ $@
 
 build/%-readable.txt: build/%-grammar.json
-	$(python) ./src/readable.py $< | tee $@_
+	$(python) ./src/readable.py $< > $@_
 	mv $@_ $@
 
 readable-%: build/%-readable.txt
