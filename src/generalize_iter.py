@@ -23,7 +23,7 @@ def replace_nodes(node1, node2, my_tree):
     assert str0 == str2
     return str1
 
-def can_it_be_replaced(i, j):
+def can_it_be_replaced(i, j): # do it with regex.
     my_tree = TREE
     original_string = tree_to_string(my_tree)
     a = tree_to_string(i)

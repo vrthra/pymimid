@@ -9,4 +9,5 @@ including the method tokens). Then use this expression to identify redundant
 non-terminals.
 
 - Readable - Simplifying: Simply replace loops and ifs with regular expression
+  -- specifically, do not use active learning.
 - Todo: Check if for loops need to be scoped
