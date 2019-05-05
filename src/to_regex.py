@@ -146,6 +146,7 @@ def rule_to_regex(grammar, rule):
     return " ".join([token_to_regex(grammar, r) for r in rule])
 
 import string
+MIN_PATTERN_LEN = 3
 def alts_to_regex(grammar, alts):
     if len(alts) == 1:
         return "%s" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
@@ -155,17 +156,20 @@ def alts_to_regex(grammar, alts):
             r = set(a[0] for a in alts)
             t = {type(a) for a in r}
             if t == {str}:
+                no_esc_punct = set(list(string.punctuation)) - set("[]^-")
+                punct = "".join(no_esc_punct)
                 patterns = {
                         "[0-9]": string.digits,
                         "[a-z]": string.ascii_lowercase,
                         "[A-Z]": string.ascii_uppercase,
                         "[a-zA-Z]": string.ascii_letters,
+                        "[%s]" % punct: punct,
                         "[a-zA-Z0-9]": string.ascii_letters + string.digits,
                         '[-a-zA-Z0-9_". +#()=/*:?,@!]': string.ascii_letters + string.digits + '_". +-#()=/*:?,@!',
                         }
                 for k in patterns:
                     p  = set(list(patterns[k]))
-                    if p > r:
+                    if p > r and len(r) > MIN_PATTERN_LEN:
                         return k
                 ascii_lower =  set(list(string.ascii_lowercase))
         return "(%s)" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
