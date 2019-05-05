@@ -164,12 +164,13 @@ def alts_to_regex(grammar, alts):
                         "[A-Z]": string.ascii_uppercase,
                         "[a-zA-Z]": string.ascii_letters,
                         "[%s]" % punct: punct,
+                        "[+-*/]" : "+-*/",
                         "[a-zA-Z0-9]": string.ascii_letters + string.digits,
                         '[-a-zA-Z0-9_". +#()=/*:?,@!]': string.ascii_letters + string.digits + '_". +-#()=/*:?,@!',
                         }
                 for k in patterns:
                     p  = set(list(patterns[k]))
-                    if p > r and len(r) > MIN_PATTERN_LEN:
+                    if p >= r and len(r) > MIN_PATTERN_LEN:
                         return k
                 ascii_lower =  set(list(string.ascii_lowercase))
         return "(%s)" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
