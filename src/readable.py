@@ -126,10 +126,12 @@ def readable(grammar):
     for k in grammar:
         if ':while_' in k or ':if_' in k:
             continue
-        print(k)
+        print(k, " ::=")
+        alts = []
         for rule in grammar[k]:
-            print(" |  ",to_regex.rule_to_regex(grammar, rule))
-
+            alts.append(to_regex.rule_to_regex(grammar, rule))
+        for r in sorted(alts):
+            print(" | ", r)
 
 import json
 def main(arg):
