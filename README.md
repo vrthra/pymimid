@@ -11,4 +11,6 @@ non-terminals.
 - Readable - Simplifying: Simply replace loops and ifs with regular expression
   -- specifically, do not use active learning. Remove generalize, and do the
   regex transformation after merging to grammar.
-- Todo: Check if for loops need to be scoped
+
+
+IMPORTANT: It fails to match up whiles from other inputs. We need to save the names if we want to do that.

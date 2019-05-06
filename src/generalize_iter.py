@@ -46,9 +46,60 @@ def can_it_be_replaced(i, j):
 while_counter = {}
 import pudb
 br = pudb.set_trace
+
+def unparse_name(method, ctrl, name, num, cstack):
+    if ctrl == 'while':
+        return "<%s:%s_%s %s>" % (method, ctrl, name, str(cstack))
+    else:
+        return "<%s:%s_%s %s+%s>" % (method, ctrl, name, num, str(cstack))
+
+def parse_name(name):
+    # '<_from_json_string:while_1 [1]>'
+    assert name[0] + name[-1] == '<>'
+    name = name[1:-1]
+    method, rest = name.split(':')
+    ctrl_name, space, stack = rest.partition(' ')
+    if ':while_' in name:
+        method_stack = json.loads(stack)
+        ctrl, name = ctrl_name.split('_')
+        return method, ctrl, int(name), 0, method_stack
+    elif ':if_' in name:
+        num, mstack = stack.split('+')
+        method_stack = json.loads(mstack)
+        ctrl, name = ctrl_name.split('_')
+        return method, ctrl, int(name), num, method_stack
+
+def update_methods(node, at, new_name):
+    nname, children, *rest = node
+    if not (':if_' in nname or ':while_' in nname):
+        return
+    method, ctrl, cname, num, cstack = parse_name(nname)
+    cstack[at] = new_name
+    name = unparse_name(method, ctrl, cname, num, cstack)
+    node[0] = name
+    for c in children:
+        update_methods(c, at, new_name)
+
+def update_name(k_m, my_id, seen):
+    original = k_m[0]
+    method, ctrl, cname, num, cstack = parse_name(original)
+    cstack[-1] = float('%d.0' % cstack[-1])
+    name = unparse_name(method, ctrl, cname, num, cstack)
+    seen[k_m[0]] = name
+    k_m[0] = name
+
+    # only replace it at the len(cstack) -1 the
+    # until the first non-cf token
+    children = []
+    for c in k_m[1]:
+        update_methods(c, len(cstack)-1, cstack[-1])
+    return name, k_m
+
 def generalize_loop(idx_map, while_register):
     global while_counter
     to_replace = []
+
+    # First we check the previous while loops
     idx_keys = sorted(idx_map.keys())
     for while_key in while_register[0]:
         # try sampling here.
@@ -64,10 +115,11 @@ def generalize_loop(idx_map, while_register):
                 break
     replace_all(to_replace)
 
+    # then we check he current while iterations
     rkeys = sorted(idx_map.keys(), reverse=True)
     for i in rkeys: # <- nodes to check for replacement -- started from the back
         i_m = idx_map[i]
-        if '*' in i_m: continue
+        if '.0' in i_m[0]: continue
         j_keys = sorted([j for j in idx_map.keys() if j < i])
         for j in j_keys: # <- nodes that we can replace i_m with -- starting from front.
             j_m = idx_map[j]
@@ -81,21 +133,21 @@ def generalize_loop(idx_map, while_register):
             break
     replace_all(to_replace)
 
-    # now, update all while names.
+    # lastly, update all while names.
     seen = {}
     for k in idx_keys:
         k_m = idx_map[k]
-        if "*" not in k_m[0]:
+        if ".0" not in k_m[0]:
             if k_m[0] in seen:
                 k_m[0] = seen[k_m[0]]
                 continue
             # new! get a brand new name!
-            km_1, rest = k_m[0].split(' ')
             while_register[1] += 1
-            name = "%s *%d>" % (km_1, while_register[1])
-            seen[k_m[0]] = name
-            k_m[0] = name
-            while_register[0][name] = [k_m]
+            my_id = while_register[1]
+
+            original_name = k_m[0]
+            name, new_km = update_name(k_m, my_id, seen)
+            while_register[0][name] = [new_km]
         else:
             name = k_m[0]
             assert name in while_register[0]
@@ -128,7 +180,7 @@ def generalize(tree):
         # register. Essentially, we try to replace each.
         if ':while_' not in child[0]:
             continue
-        #if '_from_json_string:while_1' in child[0]: br()
+        #if 'from_json_dict:while_1 [2' in child[0]: br()
         while_name = child[0].split(' ')[0]
         if last_while is None:
             last_while = while_name
@@ -147,14 +199,24 @@ import json
 import check
 
 TREE = None
-
 def all_to_list(v):
     name, children, *rest = v
     return [name, [all_to_list(c) for c in children], *rest]
 
+def has_complex_children(tree):
+    node, children, *rest = tree
+    for c in children:
+        if ':if_' in c[0] or ':while_' in c[0]: return True
+    return False
+
 def replace_all(to_replace):
+    # remember, we only replace whiles.
     for i, j in to_replace:
-        i[0] = j[0]
+        #if has_complex_children(i) or has_complex_children(j):
+        method1, ctrl1, cname1, num1, cstack1 = parse_name(i[0])
+        method2, ctrl2, cname2, num2, cstack2 = parse_name(j[0])
+        assert len(cstack1) == len(cstack2)
+        update_methods(i, len(cstack2)-1, cstack2[-1])
     to_replace.clear()
 
 def main(arg):

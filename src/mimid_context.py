@@ -31,7 +31,7 @@ class stack__:
 
     def __exit__(self, *args):
         self.method_stack.pop()
-
+import json
 class scope__:
     def __init__(self, alt, stack_i, method_i):
         self.name, self.num, self.method, self.alt = stack_i.name, stack_i.num, stack_i.method, alt
@@ -44,8 +44,11 @@ class scope__:
             pass
         else:
             assert False, self.name
-        uid = '+'.join([str(v) for v in self.method_stack])
-        Tracer.trace_call('%s:%s_%s %s+%s' % (self.method, self.name, self.num, self.alt, uid))
+        uid = json.dumps(self.method_stack)
+        if self.name in {'while'}:
+            Tracer.trace_call('%s:%s_%s %s' % (self.method, self.name, self.num, uid))
+        else:
+            Tracer.trace_call('%s:%s_%s %s+%s' % (self.method, self.name, self.num, self.alt, uid))
         return self
 
     def __exit__(self, *args):
