@@ -146,7 +146,8 @@ def rule_to_regex(grammar, rule):
     return " ".join([token_to_regex(grammar, r) for r in rule])
 
 import string
-MIN_PATTERN_LEN = 3
+MIN_PATTERN_LEN = 4
+MIN_PATTERN_FRAC = 0.10
 def alts_to_regex(grammar, alts):
     if len(alts) == 1:
         return "%s" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
@@ -158,20 +159,29 @@ def alts_to_regex(grammar, alts):
             if t == {str}:
                 no_esc_punct = set(list(string.punctuation)) - set("[]^-")
                 punct = "".join(no_esc_punct)
+                p_ = "-_\". +#()=/*:?,@!"
+                p = string.ascii_letters + string.digits + "-_\". +#()=/*:?,@!"
+                ops = "+-*/"
+                quotes = "\"'"
+                boxes = "[]{}()<>"
                 patterns = {
                         "[0-9]": string.digits,
                         "[a-z]": string.ascii_lowercase,
                         "[A-Z]": string.ascii_uppercase,
                         "[a-zA-Z]": string.ascii_letters,
-                        "[%s]" % punct: punct,
-                        "[+-*/]" : "+-*/",
                         "[a-zA-Z0-9]": string.ascii_letters + string.digits,
-                        '[-a-zA-Z0-9_". +#()=/*:?,@!]': string.ascii_letters + string.digits + '_". +-#()=/*:?,@!',
+                        "[%s]" % ops : ops,
+                        "[%s]" % quotes : quotes,
+                        "[%s]" % boxes : boxes,
+                        "[%s]" % punct: punct,
+                        '[a-zA-Z0-9%s]' % p_: p
                         }
                 for k in patterns:
                     p  = set(list(patterns[k]))
                     if p >= r and len(r) > MIN_PATTERN_LEN:
-                        return k
+                        # do we hit at least 10%?
+                        if len(p) * MIN_PATTERN_FRAC < len(r):
+                            return k
                 ascii_lower =  set(list(string.ascii_lowercase))
         return "(%s)" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
 
