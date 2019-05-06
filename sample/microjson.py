@@ -7,7 +7,7 @@
 
 # std
 import math
-import pycore.myio as io
+import myio as io
 import types
 
 
@@ -70,7 +70,7 @@ class JSONStream:
 
     def skipspaces(self):
         "post-cond: read pointer will be over first non-WS char"
-        self._skip(lambda c: not c.in_(WS))
+        self._skip(lambda c: not c in WS)
 
     def _skip(self, stopcond):
         while True:
@@ -185,13 +185,13 @@ def _from_json_number(stm):
         c = stm.peek()
         if not c: break
 
-        if not c.in_(NUMCHARS):
+        if not c in NUMCHARS:
             break
         elif c == '-' and not saw_exp:
             pass
-        elif c.in_('.eE'):
+        elif c in '.eE':
             is_float = 1
-            if c.in_('eE'):
+            if c in 'eE':
                 saw_exp = 1
 
         stm.next()
@@ -244,9 +244,9 @@ def _from_json_dict(stm):
             raise JSONError(E_TRUNC, stm, pos)
 
         # end of dictionary, or next item
-        if expect_key and c.in_('},'):
+        if expect_key and c in '},':
             raise JSONError(E_DKEY, stm, stm.pos)
-        if c.in_('},'):
+        if c in '},':
             stm.next()
             if c == '}':
                 return result
@@ -287,7 +287,7 @@ def _from_json_raw(stm):
             return _from_json_fixed(stm, 'false', False, E_BOOL)
         elif c == 'n':
             return _from_json_fixed(stm, 'null', None, E_NULL)
-        elif c.in_(NUMSTART):
+        elif c in NUMSTART:
             return _from_json_number(stm)
         elif c == '':
             break
