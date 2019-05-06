@@ -13,6 +13,9 @@ while_counter = None
 methods = []
 
 class InRewriter(ast.NodeTransformer):
+    def wrap(self, node):
+        return ast.Call(func=ast.Name(id='taint_wrap__', ctx=ast.Load()), args=[node], keywords=[])
+
     def visit_Compare(self, tree_node):
         left = tree_node.left
         if not tree_node.ops or not isinstance(tree_node.ops[0], ast.In):
@@ -98,9 +101,6 @@ class Rewriter(InRewriter):
         assert not tree_node.orelse
         tree_node.body = self.wrap_in_inner('while', counter, 0, body)
         return self.wrap_in_outer('while', counter, tree_node)
-
-    def wrap(self, node):
-        return ast.Call(func=ast.Name(id='taint_wrap__', ctx=ast.Load()), args=[node], keywords=[])
 
 def rewrite_in(src, original):
     v = ast.fix_missing_locations(InRewriter().visit(ast.parse(src)))
