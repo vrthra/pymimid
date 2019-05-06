@@ -11,7 +11,21 @@ import astor
 if_counter = None
 while_counter = None
 methods = []
-class Rewriter(ast.NodeTransformer):
+
+class InRewriter(ast.NodeTransformer):
+    def visit_Compare(self, tree_node):
+        left = tree_node.left
+        if not tree_node.ops or not isinstance(tree_node.ops[0], ast.In):
+            return tree_node
+        mod_val = ast.Call(
+            func=ast.Attribute(
+                value=self.wrap(left),
+                attr='in_'),
+            args=tree_node.comparators,
+            keywords=[])
+        return mod_val
+
+class Rewriter(InRewriter):
     def wrap_in_method(self, body):
         method_name_expr = ast.Str(methods[-1])
         args = [method_name_expr]
@@ -88,25 +102,16 @@ class Rewriter(ast.NodeTransformer):
     def wrap(self, node):
         return ast.Call(func=ast.Name(id='taint_wrap__', ctx=ast.Load()), args=[node], keywords=[])
 
-    def visit_Compare(self, tree_node):
-        left = tree_node.left
-        if not tree_node.ops or not isinstance(tree_node.ops[0], ast.In):
-            return tree_node
-        mod_val = ast.Call(
-            func=ast.Attribute(
-                value=self.wrap(left),
-                attr='in_'),
-            args=tree_node.comparators,
-            keywords=[])
-        return mod_val
+def rewrite_in(src, original):
+    v = ast.fix_missing_locations(InRewriter().visit(ast.parse(src)))
+    header="""
+import string
+    """
+    print(header)
+    print(astor.to_source(v))
 
-def rewrite(src):
-    return ast.fix_missing_locations(Rewriter().visit(ast.parse(src)))
-
-import os.path
-def main(args):
-    original = open(args[1]).read()
-    v = rewrite(original)
+def rewrite(src, original):
+    v = ast.fix_missing_locations(Rewriter().visit(ast.parse(src)))
     header="""
 import string
 from mimid_context import scope__, stack__, method__
@@ -141,7 +146,16 @@ if __name__ == "__main__":
     # This generates a trace file if redirected to trace.json
     # use ./src/mine.py trace.json to get the derivation tree.
 """
-    print(footer % repr(args[1]))
+    print(footer % repr(original))
+
+ONLY_IN = False
+import os.path
+def main(args):
+    original = open(args[1]).read()
+    if ONLY_IN:
+        rewrite_in(original, args[1])
+    else:
+        rewrite(original, args[1])
 
 import sys
 main(sys.argv)
