@@ -47,7 +47,10 @@ def generalize_loop(idx_map):
             if a and b:
                 replace_name(i_m, j_m) # <- replace i_m by j_m
                 break
+    replace_all()
     return idx_map
+
+NODE_REGISTER = {}
 
 def generalize(tree):
     # The idea is to look through the tree, looking for while loops
@@ -58,14 +61,30 @@ def generalize(tree):
     # one with an alternate with the last's definition, and replace the
     # name of last with the first, and delete last.
     node, children, *_rest = tree
+    if node not in NODE_REGISTER:
+        NODE_REGISTER[node] = {}
+    register = NODE_REGISTER[node]
+
     for child in children:
         generalize(child)
-        replace_all()
 
     idxs = {}
+    last_while = None
     for i,child in enumerate(children):
-        if ':while_' in child[0]: idxs[i] = child
-    gmap = generalize_loop(idxs) if idxs else {}
+        # now we need to map the while_name here to the ones in node
+        # register. Essentially, we try to replace each.
+        if ':while_' not in child[0]:
+            continue
+        while_name = child[0].split(' ')[0]
+        if last_while is None:
+            last_while = while_name
+        else:
+            if last_while != while_name:
+                # a new while! Generalize the last
+                generalize_loop(idxs)
+                last_while = while_name
+        idxs[i] = child
+    generalize_loop(idxs)
 
 import json
 import check
