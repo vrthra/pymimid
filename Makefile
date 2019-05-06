@@ -58,7 +58,7 @@ build/netrc_trace.json: build/netrc_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
-GENERALIZE=no
+GENERALIZE=yes
 ifeq ($(GENERALIZE), yes)
 # Get the derivation tree out
 build/%_ngtree.json: build/%_trace.json | build
@@ -105,7 +105,7 @@ save:
 
 
 build/%-egrammar.json:
-	for i in sample/input/$*/*.csv; do echo $$i; f="$$(basename $$i)"; echo $$f; make clean; make build/$*_refine.json arg="$$f"; make save name=$$f; done
+	for i in sample/input/$*/0*.csv; do echo $$i; f="$$(basename $$i)"; echo $$f; make clean; make build/$*_refine.json arg="$$f"; make save name=$$f; done
 	$(python) ./src/merge.py .backup/$*_refine* > $@_
 	mv $@_ $@
 

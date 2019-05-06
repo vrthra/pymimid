@@ -1,6 +1,8 @@
 # What samples to use for a{n} to conirm that a* is a valid regex.
 SAMPLES_FOR_REP = [0, 1, 2]
 
+MATCH_COMPLETE = True
+
 class Regex:
     def to_rules(self):
         if isinstance(self, Alt):
@@ -44,6 +46,8 @@ class Regex:
             assert False
 
     def sub_match_regex(self, another_regex):
+        if MATCH_COMPLETE:
+            return str(self) == str(another_regex)
         # for submatch, not all alts need to match. But every thing else should
         # match.
         return self._sub_match_regex(another_regex)
@@ -147,7 +151,7 @@ def rule_to_regex(grammar, rule):
 
 import string
 MIN_PATTERN_LEN = 4
-MIN_PATTERN_FRAC = 0.10
+MIN_PATTERN_FRAC = 0.50
 def alts_to_regex(grammar, alts):
     if len(alts) == 1:
         return "%s" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
@@ -155,7 +159,7 @@ def alts_to_regex(grammar, alts):
         r = set(len(a) for a in alts)
         if r == {1}:
             r = set(a[0] for a in alts)
-            t = {type(a) for a in r}
+            t = {type(a) if a[0] != '<' and a[-1] != '>' else None for a in r}
             if t == {str}:
                 no_esc_punct = set(list(string.punctuation)) - set("[]^-")
                 punct = "".join(no_esc_punct)
@@ -178,11 +182,11 @@ def alts_to_regex(grammar, alts):
                         }
                 for k in patterns:
                     p  = set(list(patterns[k]))
-                    if p >= r and len(r) > MIN_PATTERN_LEN:
-                        # do we hit at least 10%?
-                        if len(p) * MIN_PATTERN_FRAC < len(r):
+                    # do we hit at least 10%?
+                    if len(p) * MIN_PATTERN_FRAC < len(r):
+                        if p >= r and len(r) > MIN_PATTERN_LEN:
                             return k
-                ascii_lower =  set(list(string.ascii_lowercase))
+                return "[%s]" % "".join(sorted(r))
         return "(%s)" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
 
 def rule_to_regexz(grammar, rule):
