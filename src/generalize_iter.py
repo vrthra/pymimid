@@ -4,7 +4,7 @@ from helpers import tree_to_string
 import copy
 
 TO_REPLACE = []
-def replace_it(i, j):
+def replace_name(i, j):
     # simply rename idx_map[i] to idx_map[j]
     TO_REPLACE.append((i, j))
 
@@ -36,16 +36,18 @@ def can_it_be_replaced(i, j):
 
 def generalize_loop(idx_map):
     keys = sorted(idx_map.keys(), reverse=True)
-    for i in keys:
-        j_keys = [j for j in idx_map.keys() if j < i]
-        for j in j_keys:
-            a = can_it_be_replaced(idx_map[i], idx_map[j])
-            b = can_it_be_replaced(idx_map[j], idx_map[i])
+    for i in keys: # <- nodes to check for replacement -- started from the back
+        i_m = idx_map[i]
+        j_keys = sorted([j for j in idx_map.keys() if j < i])
+        for j in j_keys: # <- nodes that we can replace i_m with -- starting from front.
+            j_m = idx_map[j]
+            if i_m[0] == j_m[0]: assert False
+            a = can_it_be_replaced(i_m, j_m)
+            b = can_it_be_replaced(j_m, i_m)
             if a and b:
-                replace_it(idx_map[j], idx_map[i])
+                replace_name(i_m, j_m) # <- replace i_m by j_m
                 break
     return idx_map
-
 
 def generalize(tree):
     # The idea is to look through the tree, looking for while loops
@@ -58,12 +60,12 @@ def generalize(tree):
     node, children, *_rest = tree
     for child in children:
         generalize(child)
+        replace_all()
 
     idxs = {}
     for i,child in enumerate(children):
         if ':while_' in child[0]: idxs[i] = child
-    if idxs:
-        generalize_loop(idxs)
+    gmap = generalize_loop(idxs) if idxs else {}
 
 import json
 import check
@@ -76,7 +78,8 @@ def all_to_list(v):
 
 def replace_all():
     for i, j in TO_REPLACE:
-        j[0] = i[0]
+        i[0] = j[0]
+    TO_REPLACE.clear()
 
 def main(arg):
     global TREE
@@ -85,7 +88,6 @@ def main(arg):
     check.init_module(j['original'])
     TREE = j['tree']
     generalize(TREE)
-    replace_all()
     j['tree'] = TREE
     json.dump(j, sys.stdout)
 
