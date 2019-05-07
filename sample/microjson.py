@@ -207,6 +207,8 @@ def _from_json_list(stm):
             return result
 
         elif c == ',':
+            if not result:
+                raise JSONError(E_TRUNC, stm, pos)
             stm.next()
             result.append(_from_json_raw(stm))
             continue
