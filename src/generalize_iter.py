@@ -51,9 +51,9 @@ br = pudb.set_trace
 
 def unparse_name(method, ctrl, name, num, cstack):
     if ctrl == 'while':
-        return "<%s:%s_%s %s>" % (method, ctrl, name, str(cstack))
+        return "<%s:%s_%s %s>" % (method, ctrl, name, json.dumps(cstack))
     else:
-        return "<%s:%s_%s %s+%s>" % (method, ctrl, name, num, str(cstack))
+        return "<%s:%s_%s %s+%s>" % (method, ctrl, name, num, json.dumps(cstack))
 
 def parse_name(name):
     # '<_from_json_string:while_1 [1]>'
@@ -83,9 +83,10 @@ def update_methods(node, at, new_name):
         update_methods(c, at, new_name)
 
 def update_name(k_m, my_id, seen):
+    # fixup k_m with what is in my_id, and update seen.
     original = k_m[0]
     method, ctrl, cname, num, cstack = parse_name(original)
-    cstack[-1] = float('%d.0' % cstack[-1])
+    cstack[-1] = float('%d.0' % my_id)
     name = unparse_name(method, ctrl, cname, num, cstack)
     seen[k_m[0]] = name
     k_m[0] = name
@@ -183,7 +184,7 @@ def generalize(tree):
         if ':while_' not in child[0]:
             continue
         #if 'from_json_dict:while_1 [2' in child[0]: br()
-        #if '_from_json_list:while_1 [1' in child[0]: br()
+        #if '_from_json_list:while_1 ' in child[0]: br()
         while_name = child[0].split(' ')[0]
         if last_while is None:
             last_while = while_name

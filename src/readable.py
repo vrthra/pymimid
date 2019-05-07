@@ -171,9 +171,9 @@ def readable(grammar):
             new_rule = []
             for token in rule:
                 new_rule.append((token, to_regex.token_to_regex(grammar, token)))
-            alts.add(' '.join([i for i,t in new_rule]))
+            #alts.add(' '.join([i for i,t in new_rule]))
             #alts.add(' '.join([t for i,t in new_rule]))
-            #alts.add(find_repetition([t for i, t in new_rule]))
+            alts.add(find_repetition([t for i, t in new_rule]))
         for r in sorted(alts):
             print(" | ", r)
             print()
