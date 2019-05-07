@@ -15,7 +15,8 @@ non-terminals.
 
 IMPORTANT: It fails to match up whiles from other inputs. So, all input files
 need to be evaluated in the same execution, or dump the names used to a pickle
-and reload at the start.
+and reload at the start. This will likely cause exploding requests to
+can_it_be_replaced. Use sampling if it happens. (Look for text sampling in generalize).
 
 IMPORTANT: A single if condition should be an optional.  Currently, it is
 ignored and inserted as is. Figure out why this happens.
