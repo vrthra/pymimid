@@ -26,22 +26,22 @@ build/%_trace.json: build/%_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
-build/calc_trace.json: arg=1.csv
+build/calc_trace.json: arg=0.csv
 build/calc_trace.json: build/calc_parser.py | build
 	$(python) $< sample/input/calc/$(arg) > $@_
 	mv $@_ $@
 
-build/microjson_trace.json: arg=1.csv
+build/microjson_trace.json: arg=0.csv
 build/microjson_trace.json: build/microjson_parser.py | build
 	$(python) $< sample/input/microjson/$(arg) > $@_
 	mv $@_ $@
 
-build/urljava_trace.json: arg=1.csv
+build/urljava_trace.json: arg=0.csv
 build/urljava_trace.json: build/urljava_parser.py | build
 	$(python) $< sample/input/urljava/$(arg) > $@_
 	mv $@_ $@
 
-build/urlpy_trace.json: arg=1.csv
+build/urlpy_trace.json: arg=0.csv
 build/urlpy_trace.json: build/urlpy_parser.py | build
 	$(python) $< sample/input/urlpy/$(arg) > $@_
 	mv $@_ $@
@@ -103,14 +103,8 @@ save:
 	mkdir -p .backup
 	for i in build/*.json; do j="$$(basename $$i)";k="$$(md5 -q $$i)"; cp $$i ./.backup/"$$j"_"$$k"_$(name); done
 
-
-build/%-egrammar.json:
-	for i in sample/input/$*/0*.csv; do echo $$i; f="$$(basename $$i)"; echo $$f; make clean; make build/$*_refine.json arg="$$f"; make save name=$$f; done
-	$(python) ./src/merge.py .backup/$*_refine* > $@_
-	mv $@_ $@
-
-build/%-grammar.json: build/%-egrammar.json
-	$(python) ./src/simplify.py $< > $@_
+build/%-grammar.json: build/%_refine.json
+	$(python) ./src/merge.py $< > $@_
 	mv $@_ $@
 
 build/%-readable.txt: build/%-grammar.json
