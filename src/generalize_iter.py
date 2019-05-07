@@ -8,7 +8,7 @@ def replace_name(i, j):
     # simply rename idx_map[i] to idx_map[j]
     TO_REPLACE.append((i, j))
 
-def replace_nodes(node1, node2, my_tree):
+def replace_nodes(node2, node1, my_tree):
     str0 = tree_to_string(my_tree)
     old = copy.copy(node2)
     node2.clear()
@@ -71,21 +71,23 @@ def parse_name(name):
         method_stack = json.loads(mstack)
         return method, ctrl, int(cname), num, can_empty, method_stack
 
-def update_methods(node, at, new_name):
+def update_stack(node, at, new_name):
     nname, children, *rest = node
     if not (':if_' in nname or ':while_' in nname):
         return
     method, ctrl, cname, num, can_empty, cstack = parse_name(nname)
     cstack[at] = new_name
     name = unparse_name(method, ctrl, cname, num, can_empty, cstack)
+    assert '?' not in name
     node[0] = name
     for c in children:
-        update_methods(c, at, new_name)
+        update_stack(c, at, new_name)
 
 def update_name(k_m, my_id, seen):
     # fixup k_m with what is in my_id, and update seen.
     original = k_m[0]
     method, ctrl, cname, num, can_empty, cstack = parse_name(original)
+    assert can_empty != '?'
     cstack[-1] = float('%d.0' % my_id)
     name = unparse_name(method, ctrl, cname, num, can_empty, cstack)
     seen[k_m[0]] = name
@@ -95,7 +97,7 @@ def update_name(k_m, my_id, seen):
     # until the first non-cf token
     children = []
     for c in k_m[1]:
-        update_methods(c, len(cstack)-1, cstack[-1])
+        update_stack(c, len(cstack)-1, cstack[-1])
     return name, k_m
 
 def generalize_loop(idx_map, while_register):
@@ -116,16 +118,29 @@ def generalize_loop(idx_map, while_register):
                 if not b: continue
                 to_replace.append((k_m, v)) # <- replace k_m by v
                 break
-    replace_all(to_replace)
+    replace_stack_and_mark_star(to_replace)
+
+    # Check whether any of these can be deleted.
+    for i in idx_keys:
+        i_m = idx_map[i]
+        if '.0' in i_m[0]:
+            assert '?' not in i_m[0]
+            continue
+        a = can_it_be_replaced(i_m, ['', [], 0, 0])
+        method1, ctrl1, cname1, num1, can_empty, cstack1 = parse_name(i_m[0])
+        name = unparse_name(method1, ctrl1, cname1, num1, '*' if a else '+', cstack1)
+        i_m[0] = name
 
     # then we check he current while iterations
     rkeys = sorted(idx_map.keys(), reverse=True)
     for i in rkeys: # <- nodes to check for replacement -- started from the back
         i_m = idx_map[i]
+        assert '?' not in i_m[0]
         if '.0' in i_m[0]: continue
         j_keys = sorted([j for j in idx_map.keys() if j < i])
         for j in j_keys: # <- nodes that we can replace i_m with -- starting from front.
             j_m = idx_map[j]
+            assert '?' not in j_m[0]
             if i_m[0] == j_m[0]: break
             # previous whiles worked.
             a = can_it_be_replaced(i_m, j_m)
@@ -134,7 +149,7 @@ def generalize_loop(idx_map, while_register):
             if not b: continue
             to_replace.append((i_m, j_m)) # <- replace i_m by j_m
             break
-    replace_all(to_replace)
+    replace_stack_and_mark_star(to_replace)
 
     # lastly, update all while names.
     seen = {}
@@ -149,7 +164,9 @@ def generalize_loop(idx_map, while_register):
             my_id = while_register[1]
 
             original_name = k_m[0]
+            assert '?' not in original_name
             name, new_km = update_name(k_m, my_id, seen)
+            assert '?' not in name
             while_register[0][name] = [new_km]
         else:
             name = k_m[0]
@@ -213,14 +230,19 @@ def has_complex_children(tree):
         if ':if_' in c[0] or ':while_' in c[0]: return True
     return False
 
-def replace_all(to_replace):
+def replace_stack_and_mark_star(to_replace):
     # remember, we only replace whiles.
     for i, j in to_replace:
         #if has_complex_children(i) or has_complex_children(j):
-        method1, ctrl1, cname1, num1, can_empty, cstack1 = parse_name(i[0])
-        method2, ctrl2, cname2, num2, can_empty, cstack2 = parse_name(j[0])
+        method1, ctrl1, cname1, num1, can_empty1, cstack1 = parse_name(i[0])
+        method2, ctrl2, cname2, num2, can_empty2, cstack2 = parse_name(j[0])
+        assert can_empty2 != '?'
+
+        # fixup the can_empty
+        new_name = unparse_name(method1, ctrl1, cname1, num1, can_empty2, cstack1)
+        i[0] = new_name
         assert len(cstack1) == len(cstack2)
-        update_methods(i, len(cstack2)-1, cstack2[-1])
+        update_stack(i, len(cstack2)-1, cstack2[-1])
     to_replace.clear()
 
 def main(arg):
