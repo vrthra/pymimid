@@ -49,35 +49,35 @@ while_counter = {}
 import pudb
 br = pudb.set_trace
 
-def unparse_name(method, ctrl, name, num, cstack):
+def unparse_name(method, ctrl, name, num, can_empty, cstack):
     if ctrl == 'while':
-        return "<%s:%s_%s %s>" % (method, ctrl, name, json.dumps(cstack))
+        return "<%s:%s_%s %s %s>" % (method, ctrl, name, can_empty, json.dumps(cstack))
     else:
-        return "<%s:%s_%s %s+%s>" % (method, ctrl, name, num, json.dumps(cstack))
+        return "<%s:%s_%s %s %s#%s>" % (method, ctrl, name, can_empty, num, json.dumps(cstack))
 
 def parse_name(name):
     # '<_from_json_string:while_1 [1]>'
     assert name[0] + name[-1] == '<>'
     name = name[1:-1]
     method, rest = name.split(':')
-    ctrl_name, space, stack = rest.partition(' ')
+    ctrl_name, space, rest = rest.partition(' ')
+    can_empty, space, stack = rest.partition(' ')
+    ctrl, cname = ctrl_name.split('_')
     if ':while_' in name:
         method_stack = json.loads(stack)
-        ctrl, name = ctrl_name.split('_')
-        return method, ctrl, int(name), 0, method_stack
+        return method, ctrl, int(cname), 0, can_empty, method_stack
     elif ':if_' in name:
-        num, mstack = stack.split('+')
+        num, mstack = stack.split('#')
         method_stack = json.loads(mstack)
-        ctrl, name = ctrl_name.split('_')
-        return method, ctrl, int(name), num, method_stack
+        return method, ctrl, int(cname), num, can_empty, method_stack
 
 def update_methods(node, at, new_name):
     nname, children, *rest = node
     if not (':if_' in nname or ':while_' in nname):
         return
-    method, ctrl, cname, num, cstack = parse_name(nname)
+    method, ctrl, cname, num, can_empty, cstack = parse_name(nname)
     cstack[at] = new_name
-    name = unparse_name(method, ctrl, cname, num, cstack)
+    name = unparse_name(method, ctrl, cname, num, can_empty, cstack)
     node[0] = name
     for c in children:
         update_methods(c, at, new_name)
@@ -85,9 +85,9 @@ def update_methods(node, at, new_name):
 def update_name(k_m, my_id, seen):
     # fixup k_m with what is in my_id, and update seen.
     original = k_m[0]
-    method, ctrl, cname, num, cstack = parse_name(original)
+    method, ctrl, cname, num, can_empty, cstack = parse_name(original)
     cstack[-1] = float('%d.0' % my_id)
-    name = unparse_name(method, ctrl, cname, num, cstack)
+    name = unparse_name(method, ctrl, cname, num, can_empty, cstack)
     seen[k_m[0]] = name
     k_m[0] = name
 
@@ -217,8 +217,8 @@ def replace_all(to_replace):
     # remember, we only replace whiles.
     for i, j in to_replace:
         #if has_complex_children(i) or has_complex_children(j):
-        method1, ctrl1, cname1, num1, cstack1 = parse_name(i[0])
-        method2, ctrl2, cname2, num2, cstack2 = parse_name(j[0])
+        method1, ctrl1, cname1, num1, can_empty, cstack1 = parse_name(i[0])
+        method2, ctrl2, cname2, num2, can_empty, cstack2 = parse_name(j[0])
         assert len(cstack1) == len(cstack2)
         update_methods(i, len(cstack2)-1, cstack2[-1])
     to_replace.clear()

@@ -35,11 +35,12 @@ class Rewriter(InRewriter):
         scope_expr = ast.Call(func=ast.Name(id='method__', ctx=ast.Load()), args=args, keywords=[])
         return [ast.With(items=[ast.withitem(scope_expr, ast.Name(id='_method__'))], body=body)]
 
-    def wrap_in_outer(self, name, counter, node):
+    def wrap_in_outer(self, name, can_empty, counter, node):
         name_expr = ast.Str(name)
+        can_empty_expr = ast.Str(can_empty)
         counter_expr = ast.Num(counter)
         method_id = ast.Name(id='_method__')
-        args = [name_expr, counter_expr, method_id]
+        args = [name_expr, counter_expr, method_id, can_empty_expr]
         scope_expr = ast.Call(func=ast.Name(id='stack__', ctx=ast.Load()),
                 args=args, keywords=[])
         return ast.With(items=[ast.withitem(scope_expr, ast.Name(id='%s_%d_stack__' % (name, counter)))], body=[node])
@@ -87,8 +88,21 @@ class Rewriter(InRewriter):
         global if_counter
         if_counter += 1
         counter = if_counter
+        #is it empty
+        start = tree_node
+        while start:
+            if isinstance(start, ast.If):
+                if not start.orelse:
+                    start = None
+                elif len(start.orelse) == 1:
+                    start = start.orelse[0]
+                else:
+                    break
+            else:
+                break
         self.process_if(tree_node, counter=if_counter)
-        return self.wrap_in_outer('if', counter, tree_node)
+        can_empty = '+' if start else '*'
+        return self.wrap_in_outer('if', can_empty, counter, tree_node)
 
 
     def visit_While(self, tree_node):
@@ -100,7 +114,7 @@ class Rewriter(InRewriter):
         body = tree_node.body
         assert not tree_node.orelse
         tree_node.body = self.wrap_in_inner('while', counter, 0, body)
-        return self.wrap_in_outer('while', counter, tree_node)
+        return self.wrap_in_outer('while', '?', counter, tree_node)
 
 def rewrite_in(src, original):
     v = ast.fix_missing_locations(InRewriter().visit(ast.parse(src)))

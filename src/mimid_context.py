@@ -15,8 +15,9 @@ class method__:
         pass
 
 class stack__:
-    def __init__(self, name, num, method_i):
+    def __init__(self, name, num, method_i, can_empty):
         self.method_stack = method_i.stack
+        self.can_empty = can_empty # * means yes. + means no, ? means to be determined
         self.name, self.num, self.method = name, num, method_i.name
         self.prefix = to_key(self.method, self.name, self.num)
 
@@ -36,6 +37,7 @@ class scope__:
     def __init__(self, alt, stack_i, method_i):
         self.name, self.num, self.method, self.alt = stack_i.name, stack_i.num, stack_i.method, alt
         self.method_stack = method_i.stack
+        self.can_empty = stack_i.can_empty
 
     def __enter__(self):
         if self.name in {'while'}:
@@ -46,9 +48,9 @@ class scope__:
             assert False, self.name
         uid = json.dumps(self.method_stack)
         if self.name in {'while'}:
-            Tracer.trace_call('%s:%s_%s %s' % (self.method, self.name, self.num, uid))
+            Tracer.trace_call('%s:%s_%s %s %s' % (self.method, self.name, self.num, self.can_empty, uid))
         else:
-            Tracer.trace_call('%s:%s_%s %s+%s' % (self.method, self.name, self.num, self.alt, uid))
+            Tracer.trace_call('%s:%s_%s %s %s#%s' % (self.method, self.name, self.num, self.can_empty, self.alt, uid))
         return self
 
     def __exit__(self, *args):
