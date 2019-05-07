@@ -42,7 +42,7 @@ def can_it_be_replaced(i, j):
     my_string = replace_nodes(i, j, my_tree)
     v = check.check(my_string)
     if v:
-        print('[{"%s": "%s"}, {"%s":"%s"}, %s]' % (i[0], a, j[0], b, my_string), file=sys.stderr)
+        print('[{"%s": "%s"}, {"%s":"%s"}, %s]' % (i[0], a.replace('"', "'"), j[0], b.replace('"', "'"), my_string), file=sys.stderr)
     return v
 
 while_counter = {}
