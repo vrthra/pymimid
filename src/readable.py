@@ -153,13 +153,18 @@ def find_normal_repetition(rule):
         res.extend(rep)
     return res
 
+import sequitur
 def find_repetition(rule):
     #rule = find_while_repetition(rule)
     #rule = ["(%s)+" % ''.join(i) if isinstance(i, list) else i[1] for i in rule]
     #rule = find_normal_repetition(rule)
     #rule = [("(%s)+" % ''.join(i) if isinstance(i, list) else i) for i in rule]
     #return '\n->  '.join(rule)
-    return  '\n->  '.join([str(r) for r in rule])
+    s = [str(r) for r in rule]
+    g = sequitur.Grammar()
+    g.train_string(s)
+    x = g.flatten()
+    return str(x)
 
 import to_regex
 def readable(grammar):

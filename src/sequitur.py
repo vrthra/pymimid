@@ -304,11 +304,23 @@ class Grammar:
 
     def seq_to_flat(self, seq, g):
         my_seq = []
+        last = []
         for s in seq:
             token, count = s
             seq_, count_ = self.token_to_flat(token, g)
-            my_seq.append((seq_, count * count_))
-        return (my_seq, 1)
+            if last:
+                if seq_ == last[0]:
+                    my_seq[-1][1] += count * count_
+                else:
+                    my_seq.append([seq_, count * count_])
+            else:
+                my_seq.append([seq_, count * count_])
+                last = my_seq[-1]
+        if len(my_seq) == 1:
+            return tuple(my_seq[0])
+        else:
+            return ([tuple(i) for i in my_seq], 1)
+
     def token_to_flat(self, token, g):
         if (token[0], token[-1]) != ('<', '>'): # if a terminal
             return (token, 1)
