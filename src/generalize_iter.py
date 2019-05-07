@@ -105,7 +105,7 @@ def generalize_loop(idx_map, while_register):
     idx_keys = sorted(idx_map.keys())
     for while_key in while_register[0]:
         # try sampling here.
-        values = while_register[0][while_key][0:1]
+        values = while_register[0][while_key]#[0:1]
         for k in idx_keys:
             for v in values:
                 k_m = idx_map[k]
