@@ -30,6 +30,7 @@ E_BOOL = 'expected boolean'
 E_NULL = 'expected null'
 E_LITEM = 'expected list item'
 E_DKEY = 'expected key'
+E_COMMA = 'missing comma between elements'
 E_COLON = 'missing colon after key'
 E_EMPTY = 'found empty string, not valid JSON data'
 E_BADESC = 'bad escape character found'
@@ -80,9 +81,7 @@ class JSONStream:
             self.next()
 
     def next(self, size=1):
-        v = self._stm.read(size)
-        self._tstr = self._tstr[size:]
-        return v
+        return self._stm.read(size)
 
     def next_ord(self):
         return ord(next(self))
@@ -94,16 +93,6 @@ class JSONStream:
 
     def substr(self, pos, length):
         return self.getvalue()[pos:pos+length]
-
-    #@property
-    #def _tstr(self):
-    #    return self._stm._tstr
-
-    def __str__(self):
-        return str(self._tstr)
-
-    def __repr__(self):
-        return "J" + str(self._tstr)
 
 
 def _decode_utf8(c0, stm):
@@ -235,7 +224,7 @@ def _from_json_dict(stm):
     # skip over '{'
     stm.next()
     result = {}
-    expect_key = 0
+    expect_key = 1
     pos = stm.pos
     while True:
         stm.skipspaces()
@@ -244,19 +233,21 @@ def _from_json_dict(stm):
             raise JSONError(E_TRUNC, stm, pos)
 
         # end of dictionary, or next item
-        if expect_key and c in '},':
-            raise JSONError(E_DKEY, stm, stm.pos)
-        if c in ',':
-            stm.next()
-            expect_key = 1
-            continue
-
-        if c in '}':
+        elif c == '}':
+            if expect_key == 2:
+                raise JSONError(E_TRUNC, stm, pos)
             stm.next()
             return result
 
+        elif c == ',':
+            stm.next()
+            expect_key = 2
+            continue
+
         # parse out a key/value pair
         elif c == '"':
+            if not expect_key:
+                raise JSONError(E_COMMA, stm, stm.pos)
             key = _from_json_string(stm)
             stm.skipspaces()
             c = stm.next()
@@ -277,22 +268,20 @@ def _from_json_raw(stm):
     while True:
         stm.skipspaces()
         c = stm.peek()
-        if c == '"':
+        if c == '"': 
             return _from_json_string(stm)
-        elif c == '{':
+        elif c == '{': 
             return _from_json_dict(stm)
-        elif c == '[':
+        elif c == '[': 
             return _from_json_list(stm)
         elif c == 't':
             return _from_json_fixed(stm, 'true', True, E_BOOL)
         elif c == 'f':
             return _from_json_fixed(stm, 'false', False, E_BOOL)
-        elif c == 'n':
+        elif c == 'n': 
             return _from_json_fixed(stm, 'null', None, E_NULL)
         elif c in NUMSTART:
             return _from_json_number(stm)
-        elif c == '':
-            break
 
         raise JSONError(E_MALF, stm, stm.pos)
 
