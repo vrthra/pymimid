@@ -13,4 +13,12 @@ non-terminals.
   regex transformation after merging to grammar.
 
 
-IMPORTANT: It fails to match up whiles from other inputs. We need to save the names if we want to do that.
+IMPORTANT: It fails to match up whiles from other inputs. So, all input files
+need to be evaluated in the same execution, or dump the names used to a pickle
+and reload at the start.
+
+IMPORTANT: A single if condition should be an optional.  Currently, it is
+ignored and inserted as is. Figure out why this happens.
+
+IMPORTANT: Apply Sequitur to identify recursive structures in rules
+
