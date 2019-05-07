@@ -196,6 +196,7 @@ def _from_json_list(stm):
     stm.next()
     result = []
     pos = stm.pos
+    comma = False
     while True:
         stm.skipspaces()
         c = stm.peek()
@@ -209,13 +210,18 @@ def _from_json_list(stm):
         elif c == ',':
             if not result:
                 raise JSONError(E_TRUNC, stm, pos)
+            if comma:
+                raise JSONError(E_TRUNC, stm, pos)
+            comma = True
             stm.next()
             result.append(_from_json_raw(stm))
+            comma = False
             continue
 
         elif not result:
             # first item
             result.append(_from_json_raw(stm))
+            comma = False
             continue
 
         else:
@@ -228,6 +234,7 @@ def _from_json_dict(stm):
     result = {}
     expect_key = 1
     pos = stm.pos
+    comma = False
     while True:
         stm.skipspaces()
         c = stm.peek()
@@ -242,6 +249,11 @@ def _from_json_dict(stm):
             return result
 
         elif c == ',':
+            if not result:
+                raise JSONError(E_TRUNC, stm, pos)
+            if comma:
+                raise JSONError(E_TRUNC, stm, pos)
+            comma = True
             stm.next()
             expect_key = 2
             continue
@@ -260,6 +272,7 @@ def _from_json_dict(stm):
             val = _from_json_raw(stm)
             result[key] = val
             expect_key = 0
+            comma = False
             continue
 
         # unexpected character in middle of dict
@@ -413,3 +426,6 @@ def skip_classes():
 
 def main(arg):
     return from_json(arg)
+
+#import sys
+#main(open(sys.argv[1]).read().replace('\n', ' '))
