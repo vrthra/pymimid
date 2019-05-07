@@ -1,3 +1,4 @@
+import string
 class Symbol:
     def __init__(self, grammar):
         self.grammar, self.next, self.prev = grammar, None, None
@@ -308,10 +309,12 @@ class Grammar:
             seq_, count_ = self.token_to_flat(token, g)
             my_seq.append((seq_, count * count_))
         return (my_seq, 1)
-
     def token_to_flat(self, token, g):
-        if (token[0], token[-1]) != ('<', '>'):
+        if (token[0], token[-1]) != ('<', '>'): # if a terminal
             return (token, 1)
+        if not set(token[1:-1]) <= set(string.digits): # if not numeric.
+            return (token, 1)
+
         rule = g[token]
         if len(rule) == 1:
             t, count = rule[0]
