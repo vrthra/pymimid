@@ -156,7 +156,7 @@ def find_normal_repetition(rule):
 def find_repetition(rule):
     #rule = find_while_repetition(rule)
     #rule = ["(%s)+" % ''.join(i) if isinstance(i, list) else i[1] for i in rule]
-    #rule = find_normal_repetition(rule)
+    rule = find_normal_repetition(rule)
     rule = [("(%s)+" % ''.join(i) if isinstance(i, list) else i) for i in rule]
     return '\n->  '.join(rule)
 
@@ -171,8 +171,9 @@ def readable(grammar):
             new_rule = []
             for token in rule:
                 new_rule.append((token, to_regex.token_to_regex(grammar, token)))
+            alts.add(' '.join([i for i,t in new_rule]))
             #alts.add(' '.join([t for i,t in new_rule]))
-            alts.add(find_repetition([t for i, t in new_rule]))
+            #alts.add(find_repetition([t for i, t in new_rule]))
         for r in sorted(alts):
             print(" | ", r)
             print()
