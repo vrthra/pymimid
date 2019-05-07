@@ -312,7 +312,11 @@ def from_json(data):
     if not data:
         return None
     stm = JSONStream(data)
-    return _from_json_raw(stm)
+    v = _from_json_raw(stm)
+    c = stm.peek()
+    if c:
+        raise JSONError(E_BYTES)
+    return v
 
 
 # JSON emitter
