@@ -246,12 +246,14 @@ def _from_json_dict(stm):
         # end of dictionary, or next item
         if expect_key and c in '},':
             raise JSONError(E_DKEY, stm, stm.pos)
-        if c in '},':
+        if c in ',':
             stm.next()
-            if c == '}':
-                return result
             expect_key = 1
             continue
+
+        if c in '}':
+            stm.next()
+            return result
 
         # parse out a key/value pair
         elif c == '"':

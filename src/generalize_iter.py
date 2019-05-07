@@ -41,6 +41,8 @@ def can_it_be_replaced(i, j):
         return True
     my_string = replace_nodes(i, j, my_tree)
     v = check.check(my_string)
+    if v:
+        print(my_string, file=sys.stderr)
     return v
 
 while_counter = {}
@@ -181,6 +183,7 @@ def generalize(tree):
         if ':while_' not in child[0]:
             continue
         #if 'from_json_dict:while_1 [2' in child[0]: br()
+        #if '_from_json_list:while_1 [1' in child[0]: br()
         while_name = child[0].split(' ')[0]
         if last_while is None:
             last_while = while_name
