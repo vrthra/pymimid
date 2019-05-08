@@ -239,7 +239,7 @@ def simplify(flattened_rules, grammar):
     for rule in flattened_rules:
         s = strip_count(rule,  grammar, '', False)
         rule_hash[str(s)].append(rule)
-    return [str(merge(v, k)) for k,v in rule_hash.items()]
+    return [merge(v, k) for k,v in rule_hash.items()]
 
 import to_regex
 def readable(grammar):
