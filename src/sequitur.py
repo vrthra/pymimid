@@ -315,7 +315,7 @@ class Grammar:
                     my_seq.append([seq_, count * count_])
             else:
                 my_seq.append([seq_, count * count_])
-                last = my_seq[-1]
+            last = my_seq[-1]
         if len(my_seq) == 1:
             return tuple(my_seq[0])
         else:

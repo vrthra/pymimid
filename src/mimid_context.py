@@ -25,7 +25,7 @@ class stack__:
         if self.name in {'while'}:
             self.method_stack.append(0)
         elif self.name in {'if'}:
-            self.method_stack.append('_')
+            self.method_stack.append(-1)
         else:
             assert False
         return self

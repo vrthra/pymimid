@@ -32,19 +32,25 @@ class Regex:
         if isinstance(self, Alt):
             return "(%s|%s)" % (str(self.a1), str(self.a2))
         if isinstance(self, Altz):
-            if self.star:
-                return "(%s|)" % '|'.join(str(a) for a in self.arr)
-            else:
-                return "(%s)" % '|'.join(str(a) for a in self.arr)
+            #if self.star:
+            #    return "(%s|)" % '|'.join(sorted(set([str(a) for a in self.arr])))
+            #else:
+                if len(self.arr) == 1:
+                    return "%s" % '|'.join(sorted(set([str(a) for a in self.arr])))
+                else:
+                    return "(%s)" % '|'.join(sorted(set([str(a) for a in self.arr])))
         elif  isinstance(self, Rep):
-            return "(%s)*" % self.a
+            if len(self.a) == 1:
+                return "%s*" % self.a
+            else:
+                return "(%s)*" % self.a
         elif  isinstance(self, Seq):
             if len(self.arr) == 1:
-                return "(%s)" % ''.join(str(a) for a in self.arr)
+                return "%s" % ''.join(str(a) for a in self.arr)
             else:
                 return "(%s)" % ''.join(str(a) for a in self.arr)
         elif  isinstance(self, One):
-            return ''.join(str(o).replace('*', '[*]').replace('(', '[(]').replace(')', '[)]') for o in self.o)
+            return repr(''.join(str(o).replace('*', '[*]').replace('(', '[(]').replace(')', '[)]') for o in self.o))
         else:
             assert False
 
@@ -108,7 +114,7 @@ class One(Regex):
             return self.o == another.o
 
 class Altz(Regex):
-    def __init__(self, arr, star): self.arr = arr, self.star = star
+    def __init__(self, arr, star): self.arr, self.star = arr, star
     def __repr__(self): return "altz:(%s)" % '|'.join([str(a) for a in self.arr])
 
     def _sub_match_regex(self, another):
@@ -202,17 +208,17 @@ def alts_to_regexz(grammar, alts, star):
     expr = []
     for rule in alts:
         expr.append(rule_to_regexz(grammar, rule))
-    return Altz(expr)
+    return Altz(expr, star)
 
-def token_to_regexz(grammar, token):
+def token_to_regexz(grammar, token, has_star=True):
     definition = grammar.get(token, None)
     if definition is None:
         return One(token)
     elif ':while_' in token:
         #br()
-        return alts_to_regexz(grammar, definition, star=('*' in token))
+        return alts_to_regexz(grammar, definition, star=('*' in token) and has_star)
     elif ':if_' in token:
         #br()
-        return alts_to_regexz(grammar, definition, star=('*' in token))
+        return alts_to_regexz(grammar, definition, star=('*' in token) and has_star)
     else:
         return One(token)

@@ -60,7 +60,7 @@ def replace(grammar, key, by):
     return grammar
 
 
-def simplify(my_grammar):
+def simplify_(my_grammar):
     to_replace = {}
     for k in my_grammar:
         rules = my_grammar[k]
@@ -232,14 +232,26 @@ def merge(rules, k):
     return v
 
 def simplify(flattened_rules, grammar):
-    #if len(flattened_rules) == 1:
-    #    return from_rule(grammar, flattened_rules)
     simple = set([str(strip_count(s, grammar, '', False)) for s in flattened_rules]) # our templates.
     rule_hash = {s:[] for s in simple}
     for rule in flattened_rules:
         s = strip_count(rule,  grammar, '', False)
         rule_hash[str(s)].append(rule)
     return [merge(v, k) for k,v in rule_hash.items()]
+
+def convert_to_regex(grammar, e):
+    has_star = False
+    item, count = e
+    if count == {1}:
+        if isinstance(item, list):
+            return ' '.join([convert_to_regex(grammar, t) for t in item])
+        else:
+            return str(to_regex.token_to_regexz(grammar, item, has_star))
+    else:
+        if isinstance(item, list):
+            return "(%s)+" % ''.join([convert_to_regex(grammar, t) for t in item])
+        else:
+            return "(%s)+" % str(to_regex.token_to_regexz(grammar, item, has_star))
 
 import to_regex
 def readable(grammar):
@@ -256,9 +268,13 @@ def readable(grammar):
             #alts.add(' '.join([i for i,t in new_rule]))
             #alts.add(' '.join([t for i,t in new_rule]))
             alts.append(find_repetition(rule))
+            #alts.append(rule)
         new_alts = simplify(alts, grammar)
-        for alt in new_alts:
-            print(" | ", ''.join([str(a) for a in alt]))
+        my_new_alts = [convert_to_regex(grammar, a) for a in new_alts]
+        #my_new_alts = [str(a) for a in alts]
+        for alt in sorted(set(my_new_alts)):
+        #for alt in my_new_alts:
+            print(" | ", alt)
 import json
 def main(arg):
     with open(arg) as f:
