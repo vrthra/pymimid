@@ -50,7 +50,9 @@ class Regex:
             else:
                 return "(%s)" % ''.join(str(a) for a in self.arr)
         elif  isinstance(self, One):
-            return repr(''.join(str(o).replace('*', '[*]').replace('(', '[(]').replace(')', '[)]') for o in self.o))
+            if len(self.o) == 1:
+                return repr(self.o)
+            return ''.join(str(o).replace('*', '[*]').replace('(', '[(]').replace(')', '[)]') for o in self.o)
         else:
             assert False
 
