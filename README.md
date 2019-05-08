@@ -21,5 +21,5 @@ can_it_be_replaced. Use sampling if it happens. (Look for text sampling in gener
 IMPORTANT: A single if condition should be an optional.  Currently, it is
 ignored and inserted as is. Figure out why this happens.
 
-IMPORTANT: Apply Sequitur to identify recursive structures in rules
-
+IMPORTANT: Do the recursion merge on the whiles and others before converting
+them to regex
