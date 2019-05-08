@@ -164,7 +164,39 @@ def find_repetition(rule):
     g = sequitur.Grammar()
     g.train_string(s)
     x = g.flatten()
-    return str(x)
+    return x
+
+def from_rule(grammar, rule):
+    new_rule = []
+    for token, count in rule:
+        new_rule.append(to_regex.token_to_regex(grammar, token)) # TODO: take care of repetition
+    return new_rule
+
+def merge_with(k, count, simple_merged, merged):
+    return merged
+
+def flat_list(l):
+    return [flat_count(x) if isinstance(x, list) else x for x,c in l]
+
+def flat_count(r):
+    if isinstance(r, list):
+        return [flat_list(i) for i in r]
+    else:
+        return flat_list(r[0])
+
+def strip_count(r):
+    if isinstance(r, list):
+        return [strip_count(i) for i in r]
+    elif isinstance(r, tuple):
+        return strip_count(r[0])
+    else:
+        return r
+
+def simplify(flattened_rules, grammar):
+    #if len(flattened_rules) == 1:
+    #    return from_rule(grammar, flattened_rules)
+    simple = [strip_count(s) for s in flattened_rules]
+    return simple
 
 import to_regex
 def readable(grammar):
@@ -172,19 +204,18 @@ def readable(grammar):
         if ':while_' in k or ':if_' in k:
             continue
         print(k, " ::=")
-        alts = set()
+        alts = []
         for rule in grammar[k]:
-            new_rule = []
-            for token in rule:
-                new_rule.append((token, to_regex.token_to_regex(grammar, token)))
-            r = [t for i, t in new_rule]
+            #for token in rule:
+                #new_rule.append((token, to_regex.token_to_regex(grammar, token)))
+            #    new_rule.append(token, to_regex.token_to_regex(grammar, token)))
+            #r = [t for i, t in new_rule]
             #alts.add(' '.join([i for i,t in new_rule]))
             #alts.add(' '.join([t for i,t in new_rule]))
-            alts.add(find_repetition(r))
-        for r in sorted(alts):
-            print(" | ", r)
-            print()
-        print()
+            alts.append(find_repetition(rule))
+        new_alts = simplify(alts, grammar)
+        for alt in new_alts:
+            print(" | ", str(alt))
 import json
 def main(arg):
     with open(arg) as f:
