@@ -1,37 +1,8 @@
-# What samples to use for a{n} to conirm that a* is a valid regex.
-SAMPLES_FOR_REP = [0, 1, 2]
-
 MATCH_COMPLETE = True
 
 class Regex:
-    def to_rules(self):
-        if isinstance(self, Alt):
-            for a1 in self.a1.to_rules():
-                yield a1
-            for a2 in self.a2.to_rules():
-                yield a2
-        elif  isinstance(self, Rep):
-            for a3 in self.a.to_rules():
-                for n in SAMPLES_FOR_REP:
-                    yield a3 * n
-        elif  isinstance(self, Seq):
-            for a4 in self.arr[0].to_rules():
-                if self.arr[1:]:
-                    for a5 in Seq(self.arr[1:]).to_rules():
-                        yield a4 + a5
-                else:
-                    yield a4
-
-        elif  isinstance(self, One):
-            assert not isinstance(self.o, Regex)
-            yield self.o
-        else:
-            assert False
-
     def __str__(self):
         if isinstance(self, Alt):
-            return "(%s|%s)" % (str(self.a1), str(self.a2))
-        if isinstance(self, Altz):
             #if self.star:
             #    return "(%s|)" % '|'.join(sorted(set([str(a) for a in self.arr])))
             #else:
@@ -63,11 +34,6 @@ class Regex:
         # match.
         return self._sub_match_regex(another_regex)
 
-class Alt(Regex):
-    def __init__(self, a1, a2): self.a1, self.a2 = a1, a2
-    def __repr__(self): return "alt:(%s|%s)" % (self.a1, self.a2)
-
-
 class Rep(Regex):
     def __init__(self, a): self.a = a
     def __repr__(self): return "rep:(%s)*" % self.a
@@ -77,7 +43,7 @@ class Seq(Regex):
     def __repr__(self): return "seq:(%s)" % ''.join([str(a) for a in self.arr if a])
 
     def _sub_match_regex(self, another):
-        if isinstance(another, Altz):
+        if isinstance(another, Alt):
             if not len(another.arr) == 1: return False
             for a in another.arr:
                 if self.sub_match_regex(a):
@@ -106,7 +72,7 @@ class One(Regex):
             if len(another.arr) != 1:
                 return False
             return self.sub_match_regex(another.arr[0])
-        elif isinstance(another, Altz):
+        elif isinstance(another, Alt):
             if len(another.arr) != 1: return False
             for a in another.arr:
                 if self.sub_match_regex(a):
@@ -115,7 +81,7 @@ class One(Regex):
         else:
             return self.o == another.o
 
-class Altz(Regex):
+class Alt(Regex):
     def __init__(self, arr, star): self.arr, self.star = arr, star
     def __repr__(self): return "altz:(%s)" % '|'.join([str(a) for a in self.arr])
 
@@ -144,83 +110,118 @@ class Altz(Regex):
 def is_method(token):
     return True
 
-def token_to_regex(grammar, token):
-    if token not in grammar:
-        if token[0] + token[-1] == '<>':
-            return token
-        return repr(token)
-    definition = grammar[token]
-    if ':while_' in token:
-        return "%s" % alts_to_regex(grammar, definition)
-    elif ':if_' in token:
-        return alts_to_regex(grammar, definition)
-    elif is_method(token):
-        return token
+#def token_to_regex(grammar, token):
+#    if token not in grammar:
+#        if token[0] + token[-1] == '<>':
+#            return token
+#        return repr(token)
+#    definition = grammar[token]
+#    if ':while_' in token:
+#        return "%s" % alts_to_regex(grammar, definition)
+#    elif ':if_' in token:
+#        return alts_to_regex(grammar, definition)
+#    elif is_method(token):
+#        return token
+
+#def rule_to_regex(grammar, rule):
+#    return " ".join([token_to_regex(grammar, r) for r in rule])
+
+#import string
+#MIN_PATTERN_LEN = 4
+#MIN_PATTERN_FRAC = 0.50
+#def alts_to_regex(grammar, alts):
+#    if len(alts) == 1:
+#        return "%s" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
+#    else:
+#        r = set(len(a) for a in alts)
+#        if r == {1}:
+#            r = set(a[0] for a in alts)
+#            t = {type(a) if a[0] != '<' and a[-1] != '>' else None for a in r}
+#            if t == {str}:
+#                no_esc_punct = set(list(string.punctuation)) - set("[]^-")
+#                punct = "".join(no_esc_punct)
+#                p_ = "-_\". +#()=/*:?,@!"
+#                p = string.ascii_letters + string.digits + "-_\". +#()=/*:?,@!"
+#                ops = "+-*/"
+#                quotes = "\"'"
+#                boxes = "[]{}()<>"
+#                patterns = {
+#                        "[0-9]": string.digits,
+#                        "[a-z]": string.ascii_lowercase,
+#                        "[A-Z]": string.ascii_uppercase,
+#                        "[a-zA-Z]": string.ascii_letters,
+#                        "[a-zA-Z0-9]": string.ascii_letters + string.digits,
+#                        "[%s]" % ops : ops,
+#                        "[%s]" % quotes : quotes,
+#                        "[%s]" % boxes : boxes,
+#                        "[%s]" % punct: punct,
+#                        '[a-zA-Z0-9%s]' % p_: p
+#                        }
+#                for k in patterns:
+#                    p  = set(list(patterns[k]))
+#                    # do we hit at least 10%?
+#                    if len(p) * MIN_PATTERN_FRAC < len(r):
+#                        if p >= r and len(r) > MIN_PATTERN_LEN:
+#                            return k
+#                return "[%s]" % "".join(sorted(r))
+#        return "(%s)" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
 
 def rule_to_regex(grammar, rule):
-    return " ".join([token_to_regex(grammar, r) for r in rule])
-
-import string
-MIN_PATTERN_LEN = 4
-MIN_PATTERN_FRAC = 0.50
-def alts_to_regex(grammar, alts):
-    if len(alts) == 1:
-        return "%s" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
-    else:
-        r = set(len(a) for a in alts)
-        if r == {1}:
-            r = set(a[0] for a in alts)
-            t = {type(a) if a[0] != '<' and a[-1] != '>' else None for a in r}
-            if t == {str}:
-                no_esc_punct = set(list(string.punctuation)) - set("[]^-")
-                punct = "".join(no_esc_punct)
-                p_ = "-_\". +#()=/*:?,@!"
-                p = string.ascii_letters + string.digits + "-_\". +#()=/*:?,@!"
-                ops = "+-*/"
-                quotes = "\"'"
-                boxes = "[]{}()<>"
-                patterns = {
-                        "[0-9]": string.digits,
-                        "[a-z]": string.ascii_lowercase,
-                        "[A-Z]": string.ascii_uppercase,
-                        "[a-zA-Z]": string.ascii_letters,
-                        "[a-zA-Z0-9]": string.ascii_letters + string.digits,
-                        "[%s]" % ops : ops,
-                        "[%s]" % quotes : quotes,
-                        "[%s]" % boxes : boxes,
-                        "[%s]" % punct: punct,
-                        '[a-zA-Z0-9%s]' % p_: p
-                        }
-                for k in patterns:
-                    p  = set(list(patterns[k]))
-                    # do we hit at least 10%?
-                    if len(p) * MIN_PATTERN_FRAC < len(r):
-                        if p >= r and len(r) > MIN_PATTERN_LEN:
-                            return k
-                return "[%s]" % "".join(sorted(r))
-        return "(%s)" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
-
-def rule_to_regexz(grammar, rule):
     expr = []
     for token in rule:
-        expr.append(token_to_regexz(grammar, token))
+        expr.append(token_to_regex(grammar, token))
     return Seq(expr)
 
-def alts_to_regexz(grammar, alts, star):
+def alts_to_regex(grammar, alts, star):
     expr = []
-    for rule in alts:
-        expr.append(rule_to_regexz(grammar, rule))
-    return Altz(expr, star)
+    for stuple in alts:
+        expr.append(sequitur_tuple_to_regex(grammar, stuple))
+    return Alt(expr, star)
 
-def token_to_regexz(grammar, token, has_star=True):
-    definition = grammar.get(token, None)
-    if definition is None:
-        return One(token)
-    elif ':while_' in token:
-        #br()
-        return alts_to_regexz(grammar, definition, star=('*' in token) and has_star)
-    elif ':if_' in token:
-        #br()
-        return alts_to_regexz(grammar, definition, star=('*' in token) and has_star)
+import pudb
+br = pudb.set_trace
+
+def if_to_regex(grammar, definition, token, star):
+    return alts_to_regex(grammar, definition, star)
+
+def while_to_regex(grammar, definition, token, star):
+    return alts_to_regex(grammar, definition, star)
+
+
+def sequitur_tuple_to_regex(grammar, s_token, has_star=True):
+    item, count = s_token
+    if count == {1}:
+        if isinstance(item, list):
+            #br()
+            arr = [sequitur_tuple_to_regex(grammar, t) for t in item]
+            return Seq(arr)
+        else:
+            assert isinstance(item, (str, dict))
+            return token_to_regex(grammar, item, has_star)
     else:
-        return One(token)
+        if isinstance(item, list):
+            #br()
+            arr = [sequitur_tuple_to_regex(grammar, t) for t in item]
+            return Seq(arr)
+        else:
+            assert isinstance(item, (str, dict))
+            return token_to_regex(grammar, item, has_star)
+
+def token_to_regex(grammar, token, has_star=True):
+    if isinstance(token, dict):
+        #br()
+        tokens = token['alternatives']
+        arr = [token_to_regex(grammar, a, has_star) for a in tokens]
+        return Alt(arr, has_star)
+    else:
+        definition = grammar.get(token, None)
+        if definition is None:
+            return One(token)
+        elif ':while_' in token:
+            #br()
+            return while_to_regex(grammar, definition, token, star=('*' in token) and has_star)
+        elif ':if_' in token:
+            #br()
+            return if_to_regex(grammar, definition, token, star=('*' in token) and has_star)
+        else:
+            return One(token)
