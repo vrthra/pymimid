@@ -97,7 +97,7 @@ class tstr(tstr):
 
     def x(self, i=0):
         if not self.taint:
-            raise taint.TaintException('Invalid request idx')
+            raise tstr.TaintException('Invalid request idx')
         if isinstance(i, int):
             return [self[p]
                     for p in [k for k, j in enumerate(self.taint) if j == i]]
@@ -305,20 +305,20 @@ class eoftstr(tstr):
             cursor = 0
             if key_start < len(self):
                 assert key_stop < len(self)
-                cursor = self.taint[key_stop]
+                #cursor = self.taint[key_stop]
             else:
                 if len(self) == 0:
                     # if the original string was empty, we assume that any
                     # empty string produced from it should carry the same
                     # taint.
-                    cursor = self.x()
-                else:
+                    #cursor = self.x()
+                #else:
                     # Key start was not in the string. We can reply only
                     # if the key start was just outside the string, in
                     # which case, we guess.
                     if key_start != len(self):
                         raise tstr.TaintException('Can\'t guess the taint')
-                    cursor = self.taint[len(self) - 1] + 1
+                    #cursor = self.taint[len(self) - 1] + 1
             # _tcursor gets created only for empty strings.
             t._tcursor = cursor
             return t
