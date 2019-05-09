@@ -153,6 +153,7 @@ if __name__ == "__main__":
             Tracer.trace_init()
             main(mystring)
             sys.exit(0)
+        #print(arg, file=sys.stderr)
         assert tracer.inputstr.comparisons
         j = {
         'comparisons':Tracer.convert_comparisons(tracer.inputstr.comparisons, mystring),

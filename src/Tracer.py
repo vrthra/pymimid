@@ -51,7 +51,9 @@ def trace_set_method(method):
 
 class xtstr(ctstr):
     def __find(self, substr, sub, m):
-        v = str(substr).find(str(sub))
+        v_ = str(substr)
+        if not v_: return []
+        v = v_.find(str(sub))
         start = substr.taint[0]
         if v == -1:
             return [(i, m) for i in range(start, start + v+len(sub))]

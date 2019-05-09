@@ -21,9 +21,9 @@ build/%_parser.py: sample/%.py | build
 
 
 # Now use the rewritten source to generate trace
-arg=
+arg=*.csv
 build/%_trace.json: build/%_parser.py | build
-	$(python) $< $(arg) > $@_
+	$(python) $< sample/input/$*/$(arg) > $@_
 	mv $@_ $@
 
 build/calc_trace.json: arg=*.csv

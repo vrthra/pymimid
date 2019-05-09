@@ -473,6 +473,19 @@ class ctstr(ctstr):
         return super().find(sub, start, end)
 
 class ctstr(ctstr):
+    def rfind(self, sub, start=None, end=None):
+        if start is None:
+            start_val = 0
+        else:
+            start_val = start
+        if end is None:
+            end_val = len(self)
+        else:
+            end_val = end
+        self.add_instr(Op.IN, self[start_val:end_val], sub)
+        return super().find(sub, start, end)
+
+class ctstr(ctstr):
     def startswith(self, s, beg =0,end=None):
         if end == None:
             end = len(self)
