@@ -139,24 +139,29 @@ import Tracer
 from Tracer import taint_wrap__
 WITH_TAINT = True
 if __name__ == "__main__":
-    with open(sys.argv[1]) as f:
-        mystring = f.read().strip().replace('\\n', ' ')
-        print(repr(mystring), file=sys.stderr)
-    restrict = {'files': [sys.argv[0]]}
-    if WITH_TAINT:
-        with Tracer.Tracer(mystring, restrict) as tracer:
-            main(tracer())
-    else:
-        # DEBUG without taints:
-        Tracer.trace_init()
-        main(mystring)
-        sys.exit(0)
-    assert tracer.inputstr.comparisons
-    print(json.dumps({
+    js = []
+    for arg in sys.argv[1:]:
+        with open(arg) as f:
+            mystring = f.read().strip().replace('\\n', ' ')
+            print(repr(mystring), file=sys.stderr)
+        restrict = {'files': [sys.argv[0]]}
+        if WITH_TAINT:
+            with Tracer.Tracer(mystring, restrict) as tracer:
+                main(tracer())
+        else:
+            # DEBUG without taints:
+            Tracer.trace_init()
+            main(mystring)
+            sys.exit(0)
+        assert tracer.inputstr.comparisons
+        j = {
         'comparisons':Tracer.convert_comparisons(tracer.inputstr.comparisons, mystring),
         'method_map': Tracer.convert_method_map(tracer.method_map),
         'inputstr': str(tracer.inputstr),
-        'original': %s}))
+        'original': %s,
+        'arg': arg}
+        js.append(j)
+    print(json.dumps(js))
     # This generates a trace file if redirected to trace.json
     # use ./src/mine.py trace.json to get the derivation tree.
 """

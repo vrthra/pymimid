@@ -106,16 +106,17 @@ def generalize_loop(idx_map, while_register):
 
     # First we check the previous while loops
     idx_keys = sorted(idx_map.keys())
-    for while_key in while_register[0]:
+    for while_key, f in while_register[0]:
         # try sampling here.
-        values = while_register[0][while_key]#[0:1]
+        values = while_register[0][(while_key, f)]#[0:1]
         for k in idx_keys:
             for v in values:
                 k_m = idx_map[k]
                 a = can_it_be_replaced(k_m, v)
                 if not a: continue
-                b = can_it_be_replaced(v, k_m)
-                if not b: continue
+                if f == FILE:
+                    b = can_it_be_replaced(v, k_m)
+                    if not b: continue
                 to_replace.append((k_m, v)) # <- replace k_m by v
                 break
     replace_stack_and_mark_star(to_replace)
@@ -170,11 +171,12 @@ def generalize_loop(idx_map, while_register):
             assert '?' not in original_name
             name, new_km = update_name(k_m, my_id, seen)
             assert '?' not in name
-            while_register[0][name] = [new_km]
+            while_register[0][(name, FILE)] = [new_km]
         else:
             name = k_m[0]
-            assert name in while_register[0]
-            while_register[0][name].append(k_m)
+            if (name, FILE) not in while_register[0]:
+                while_register[0][(name, FILE)] = []
+            while_register[0][(name, FILE)].append(k_m)
 
     return idx_map
 
@@ -248,16 +250,21 @@ def replace_stack_and_mark_star(to_replace):
         assert len(cstack1) == len(cstack2)
         update_stack(i, len(cstack2)-1, cstack2[-1])
     to_replace.clear()
-
+import copy
+FILE=None
 def main(arg):
-    global TREE
+    global TREE, FILE
     with open(arg) as f:
-        j = json.load(f)
-    check.init_module(j['original'])
-    TREE = j['tree']
-    generalize(TREE)
-    j['tree'] = TREE
-    json.dump(j, sys.stdout)
+        jtrees = json.load(f)
+    new_trees = []
+    for j in jtrees:
+        FILE = j['arg']
+        check.init_module(j['original'])
+        TREE = j['tree']
+        generalize(TREE)
+        j['tree'] = TREE
+        new_trees.append(copy.deepcopy(j))
+    json.dump(new_trees, sys.stdout)
 
 import sys
 main(sys.argv[1])

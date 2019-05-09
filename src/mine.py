@@ -166,19 +166,22 @@ def last_comparisons(comparisons):
 if __name__ == "__main__":
     call_trace_f = 'call_trace.json' if len(sys.argv) < 2 else sys.argv[1]
     with open(call_trace_f) as f:
-        call_trace = json.load(f)
-    method_map = call_trace['method_map']
+        call_traces = json.load(f)
+    my_trees = []
+    for call_trace in call_traces:
+        method_map = call_trace['method_map']
 
-    first, method_tree = reconstruct_method_tree(method_map)
-    comparisons = call_trace['comparisons']
-    attach_comparisons(method_tree, last_comparisons(comparisons))
+        first, method_tree = reconstruct_method_tree(method_map)
+        comparisons = call_trace['comparisons']
+        attach_comparisons(method_tree, last_comparisons(comparisons))
 
-    my_str = call_trace['inputstr']
+        my_str = call_trace['inputstr']
 
-    print("INPUT:", my_str, file=sys.stderr)
-    tree = to_tree(method_tree[first], my_str)
-    print("RECONSTRUCTED INPUT:", tree_to_string(tree), file=sys.stderr)
-    my_tree = {'tree': tree, 'original': call_trace['original']}
-    json.dump(my_tree, sys.stdout)
-    assert tree_to_string(tree) == my_str
-    #with open('derivation_tree.json', 'w+') as f: json.dump(tree, f)
+        print("INPUT:", my_str, file=sys.stderr)
+        tree = to_tree(method_tree[first], my_str)
+        print("RECONSTRUCTED INPUT:", tree_to_string(tree), file=sys.stderr)
+        my_tree = {'tree': tree, 'original': call_trace['original'], 'arg': call_trace['arg']}
+        assert tree_to_string(tree) == my_str
+        my_trees.append(my_tree)
+    json.dump(my_trees, sys.stdout)
+        #with open('derivation_tree.json', 'w+') as f: json.dump(tree, f)

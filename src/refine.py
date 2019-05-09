@@ -12,23 +12,23 @@ def get_grammar(tree):
     g = to_grammar.to_grammar(tree, {})
     return {k:sorted(g[k]) for k in g}
 
-def main(tree_file, nt, alt):
-    my_tree = json.load(open(tree_file))
-    tree = my_tree['tree']
-    src = my_tree['original']
-    grammar = get_grammar(tree)
-    if nt is '':
-        for i, k in enumerate(grammar):
-            for j,a in enumerate(grammar[k]):
-                print(i,j,k, ' '.join(["%d:%s" % (i,t) for i,t in enumerate(a)]))
-            print()
-        return
+def merge(grammar, g):
+    for k in list(grammar.keys()) + list(g.keys()):
+        grammar[k] = list(set(grammar.get(k, list()) + g.get(k, list())))
+
+def main(tree_file):
+    my_trees = json.load(open(tree_file))
+    grammar = {}
+    for my_tree in my_trees:
+        tree = my_tree['tree']
+        src = my_tree['original']
+        g = get_grammar(tree)
+        merge(grammar, g)
 
     new_tree = {}
     new_tree['grammar'] = grammar
-    new_tree['tree'] = tree
     new_tree['original'] = src
     print(json.dumps(new_tree))
 
 if __name__ == '__main__':
-    main(sys.argv[1], nt=(sys.argv[2] if len(sys.argv) > 2 else None), alt=(int(sys.argv[3]) if len(sys.argv) > 3 else -1))
+    main(sys.argv[1])
