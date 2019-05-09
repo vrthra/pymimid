@@ -3,6 +3,7 @@
 # Module and documentation by Eric S. Raymond, 21 Dec 1998
 
 import os, mylex, stat
+import myio as io
 
 __all__ = ["netrc", "NetrcParseError"]
 
@@ -26,7 +27,8 @@ class netrc:
         self.macros = {}
         self._parse('netrc', arg, default_netrc)
 
-    def _parse(self, file, fp, default_netrc):
+    def _parse(self, file, fp_, default_netrc):
+        fp = io.StringIO(fp_)
         lexer = mylex.shlex(fp)
         lexer.wordchars += r"""!"#$%&'()*+,-./:;<=>?@[\]^_`{|}~"""
         lexer.commenters = lexer.commenters.replace('#', '')

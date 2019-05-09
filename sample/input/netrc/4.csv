@@ -1,0 +1,3 @@
+machine myownmachine
+	login myusername
+	password mypassword

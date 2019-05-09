@@ -29,11 +29,6 @@ build/%_trace.json: build/%_parser.py | build
 #build/datetime_trace.json: arg='HH[:MM[:SS[.fff[fff]]]][+HH:MM[:SS[.ffffff]]]'
 #build/datetime_trace.json: arg='10:20:41.142561+11:21:29.161278'
 
-build/netrc_trace.json: arg='machine mymachine.labkey.org login user@labkey.org password mypassword'
-build/netrc_trace.json: build/netrc_parser.py | build
-	$(python) $< $(arg) > $@_
-	mv $@_ $@
-
 GENERALIZE=yes
 ifeq ($(GENERALIZE), yes)
 # Get the derivation tree out
