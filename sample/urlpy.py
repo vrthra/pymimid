@@ -1059,4 +1059,5 @@ def splitvalue(attr):
     return attr, (value if delim else None)
 
 def main(arg):
+    clear_cache()
     urlparse(arg)
