@@ -44,14 +44,17 @@ def merge_set(k, v):
     if isinstance(k, list):
         return merge_list(k+v)
     elif isinstance(k, tuple):
-        assert len(k[0]) == len(v[0])
+        #assert len(k[0]) == len(v[0])
         if isinstance(k[0], str):
             if k[0] != v[0]:
                 assert ':if_' in k[0]
                 assert k[0].split()[0] == v[0].split()[0]
-                x = {'alternatives':(k[0], v[0])}
+                x = {'alternatives':[k[0], v[0]]}
             else:
                 x = k[0]
+        elif isinstance(k[0], dict):
+            r = k[0]['alternatives']
+            x = {'alternatives':r + [v[0]]}
         else:
             x = [merge_set(k_, v_) for k_, v_ in zip(k[0], v[0])]
         return x, (k[1] | {v[1]})

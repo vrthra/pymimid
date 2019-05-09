@@ -8,18 +8,20 @@ def replace_name(i, j):
     # simply rename idx_map[i] to idx_map[j]
     TO_REPLACE.append((i, j))
 
-def replace_nodes(node2, node1, my_tree):
-    str0 = tree_to_string(my_tree)
+def replace_nodes(n2, n1):
+    node2, f2, t2 = n2
+    node1, f1, t1 = n1
+    str0 = tree_to_string(t2)
     old = copy.copy(node2)
     node2.clear()
     for n in node1:
         node2.append(n)
-    str1 = tree_to_string(my_tree)
+    str1 = tree_to_string(t2)
     assert str0 != str1
     node2.clear()
     for n in old:
         node2.append(n)
-    str2 = tree_to_string(my_tree)
+    str2 = tree_to_string(t2)
     assert str0 == str2
     return str1
 
@@ -32,14 +34,14 @@ def node_include(i, j):
     return False
 
 
-def can_it_be_replaced(i, j):
-    my_tree = TREE
-    original_string = tree_to_string(my_tree)
+def can_it_be_replaced(i_, j_):
+    i, fi, ti = i_
+    j, fj, tj = j_
     a = tree_to_string(i)
     b = tree_to_string(j)
     if a == b:
         return True
-    my_string = replace_nodes(i, j, my_tree)
+    my_string = replace_nodes(i_, j_)
     v = check.check(my_string)
     #if v:
     #    print('[{"%s": "%s"}, {"%s":"%s"}, %s]' % (i[0], a.replace('"', "'"), j[0], b.replace('"', "'"), my_string), file=sys.stderr)
@@ -101,7 +103,7 @@ def update_name(k_m, my_id, seen):
     return name, k_m
 
 import random
-MAX_SAMPLES = 5
+MAX_SAMPLES = 1 # found sufficient!
 
 def num_tokens(v, s):
     name, child, *rest = v 
@@ -110,7 +112,7 @@ def num_tokens(v, s):
     return len(s)
 
 def s_fn(v):
-    return num_tokens(v, set())
+    return num_tokens(v[0], set())
 
 def generalize_loop(idx_map, while_register):
     global while_counter
@@ -122,16 +124,10 @@ def generalize_loop(idx_map, while_register):
         # try sampling here.
         my_values = while_register[0][(while_key, f)]#[0:1]
         v_ = random.choice(my_values)
-        if len(my_values) > 1:
-            values = sorted(my_values, key=s_fn, reverse=True)[0:MAX_SAMPLES]
-            #random.sample(my_values, 10)
-        else:
-            values = my_values
         for k in idx_keys:
             k_m = idx_map[k]
             if len(my_values) > MAX_SAMPLES:
-                values = sorted([v for v in my_values if not node_include(v, k_m)], key=s_fn, reverse=True)[0:MAX_SAMPLES]
-                #random.sample(my_values, 10)
+                values = sorted([v for v in my_values if not node_include(v[0], k_m)], key=s_fn, reverse=True)[0:MAX_SAMPLES]
             else:
                 values = my_values
 
@@ -139,25 +135,24 @@ def generalize_loop(idx_map, while_register):
             #if len(values) > 1: br()
             replace = 0
             for v in values:
-                assert v[0] == v_[0]
-                if not node_include(v, k_m): # if not k_m includes v
-                    a = can_it_be_replaced(k_m, v)
+                assert v[0][0] == v_[0][0]
+                if not node_include(v[0], k_m): # if not k_m includes v
+                    a = can_it_be_replaced((k_m, FILE, TREE), v)
                     if not a:
                         replace = 0
                         break
                     else:
                         replace += 1
-                if f == FILE:
-                    if not node_include(k_m, v):
-                        b = can_it_be_replaced(v, k_m)
-                        if not b:
-                            replace = 0
-                            break
-                        else:
-                            replace += 1
+                if not node_include(k_m, v[0]):
+                    b = can_it_be_replaced(v, (k_m, FILE, TREE))
+                    if not b:
+                        replace = 0
+                        break
+                    else:
+                        replace += 1
             # at least one needs to vouch, and all capable needs to agree.
             if replace:
-                to_replace.append((k_m, v_)) # <- replace k_m by v
+                to_replace.append((k_m, v_[0])) # <- replace k_m by v
     replace_stack_and_mark_star(to_replace)
 
     # Check whether any of these can be deleted.
@@ -166,7 +161,7 @@ def generalize_loop(idx_map, while_register):
         if '.0' in i_m[0]:
             assert '?' not in i_m[0]
             continue
-        a = can_it_be_replaced(i_m, ['', [], 0, 0])
+        a = can_it_be_replaced((i_m, FILE, TREE), (['', [], 0, 0], FILE, TREE))
         method1, ctrl1, cname1, num1, can_empty, cstack1 = parse_name(i_m[0])
         name = unparse_name(method1, ctrl1, cname1, num1, '*' if a else '+', cstack1)
         i_m[0] = name
@@ -185,11 +180,11 @@ def generalize_loop(idx_map, while_register):
             # previous whiles worked.
             replace = False
             if not node_include(j_m, i_m):
-                a = can_it_be_replaced(i_m, j_m)
+                a = can_it_be_replaced((i_m, FILE, TREE), (j_m, FILE, TREE))
                 if not a: continue
                 replace = True
             if not node_include(i_m, j_m):
-                b = can_it_be_replaced(j_m, i_m)
+                b = can_it_be_replaced((j_m, FILE, TREE), (i_m, FILE, TREE))
                 if not b: continue
                 replace = True
             if replace:
@@ -216,12 +211,12 @@ def generalize_loop(idx_map, while_register):
             assert '?' not in original_name
             name, new_km = update_name(k_m, my_id, seen)
             assert '?' not in name
-            while_register[0][(name, FILE)] = [new_km]
+            while_register[0][(name, FILE)] = [(new_km, FILE, TREE)]
         else:
             name = k_m[0]
             if (name, FILE) not in while_register[0]:
                 while_register[0][(name, FILE)] = []
-            while_register[0][(name, FILE)].append(k_m)
+            while_register[0][(name, FILE)].append((k_m, FILE, TREE))
 
     return idx_map
 
