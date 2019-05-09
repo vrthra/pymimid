@@ -115,7 +115,8 @@ def convert_to_regex(grammar, e):
             return to_regex.token_to_regex(grammar, item, has_star)
 
 import to_regex
-TO_REGULAR_RHS = True
+import os
+TO_REGULAR_RHS = os.environ.get('RHS', 'no') == 'yes'
 def plain_str(s):
     return str(s)
 def readable(grammar):
