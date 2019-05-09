@@ -108,21 +108,6 @@ class Alt(Regex):
 def is_method(token):
     return True
 
-#def token_to_regex(grammar, token):
-#    if token not in grammar:
-#        if token[0] + token[-1] == '<>':
-#            return token
-#        return repr(token)
-#    definition = grammar[token]
-#    if ':while_' in token:
-#        return "%s" % alts_to_regex(grammar, definition)
-#    elif ':if_' in token:
-#        return alts_to_regex(grammar, definition)
-#    elif is_method(token):
-#        return token
-
-#def rule_to_regex(grammar, rule):
-#    return " ".join([token_to_regex(grammar, r) for r in rule])
 
 #import string
 #MIN_PATTERN_LEN = 4
@@ -164,12 +149,6 @@ def is_method(token):
 #                return "[%s]" % "".join(sorted(r))
 #        return "(%s)" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
 
-# def rule_to_regex(grammar, rule):
-#     expr = []
-#     for token in rule:
-#         expr.append(token_to_regex(grammar, token))
-#     return Seq(expr)
-
 def alts_to_regex(grammar, alts, ctl_flow):
     expr = []
     for stuple in alts:
@@ -195,10 +174,17 @@ def sequitur_tuple_to_regex(grammar, s_token, ctl_flow=True):
             return Seq(arr)
         else:
             assert isinstance(item, (str, dict))
-            if ctl_flow:
-                return token_to_regex(grammar, item, ctl_flow)
+            if isinstance(item, str):
+                if ctl_flow:
+                    return token_to_regex(grammar, item, ctl_flow)
+                else:
+                    return repr(item)
             else:
-                return repr(item)
+                if ctl_flow:
+                    return token_to_regex(grammar, item, ctl_flow)
+                else:
+                    tokens = item['alternatives']
+                    return Alt([repr(t) for t in tokens])
     else:
         if isinstance(item, list):
             #br()
