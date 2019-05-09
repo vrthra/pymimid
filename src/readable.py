@@ -112,6 +112,9 @@ def convert_to_regex(grammar, e):
             return to_regex.token_to_regex(grammar, item, has_star)
 
 import to_regex
+TO_REGULAR_RHS = True
+def plain_str(s):
+    return str(s)
 def readable(grammar):
     # first use sequitur to collapse each rule to repetition counters.
     r_grammar = {}
@@ -147,25 +150,32 @@ def readable(grammar):
 
     # now, the while_ and if_ stuff can be summarized to regex, and
     # their definitions removed. Only method defs should remain
-    e_grammar = {}
-    for k in m_grammar:
-        alts = []
-        for s_tuple in m_grammar[k]:
-            # here, we should remember to merge if conditions
-            # and identify nullable things.
-            # Remember to use the merged regex definitions of tokens.
-            a = to_regex.sequitur_tuple_to_regex(m_grammar, s_tuple)
-            alts.append(a)
-        e_grammar[k] = alts
-    m_grammar = None 
+    if TO_REGULAR_RHS:
+        e_grammar = {}
+        for k in m_grammar:
+            alts = []
+            for s_tuple in m_grammar[k]:
+                # here, we should remember to merge if conditions
+                # and identify nullable things.
+                # Remember to use the merged regex definitions of tokens.
+                a = to_regex.sequitur_tuple_to_regex(m_grammar, s_tuple)
+                alts.append(a)
+            e_grammar[k] = alts
+        m_grammar = None 
 
-    # finally print it all out
-    for k in e_grammar:
-        if ':while_' in k or ':if_' in k: continue
-        print(k)
-        for alt in sorted(set([str(s) for s in e_grammar[k]])):
-            print(" | ", alt)
-        print()
+        # finally print it all out
+        for k in e_grammar:
+            if ':while_' in k or ':if_' in k: continue
+            print(k)
+            for alt in sorted(set([str(s) for s in e_grammar[k]])):
+                print(" | ", alt)
+            print()
+    else:
+        for k in m_grammar:
+            print(k)
+            for alt in sorted(set([str(to_regex.sequitur_tuple_to_regex(m_grammar, s_tuple, False)) for s_tuple in m_grammar[k]])):
+                print(" | ", alt)
+            print()
 
 import json
 def main(arg):

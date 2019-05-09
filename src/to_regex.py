@@ -80,7 +80,7 @@ class One(Regex):
             return self.o == another.o
 
 class Alt(Regex):
-    def __init__(self, arr, star): self.arr, self.star = arr, star
+    def __init__(self, arr, star=0): self.arr, self.star = arr, star
     def __repr__(self): return "altz:(%s)" % '|'.join([str(a) for a in self.arr])
 
     def _sub_match_regex(self, another):
@@ -164,62 +164,65 @@ def is_method(token):
 #                return "[%s]" % "".join(sorted(r))
 #        return "(%s)" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
 
-def rule_to_regex(grammar, rule):
-    expr = []
-    for token in rule:
-        expr.append(token_to_regex(grammar, token))
-    return Seq(expr)
+# def rule_to_regex(grammar, rule):
+#     expr = []
+#     for token in rule:
+#         expr.append(token_to_regex(grammar, token))
+#     return Seq(expr)
 
-def alts_to_regex(grammar, alts, star):
+def alts_to_regex(grammar, alts, ctl_flow):
     expr = []
     for stuple in alts:
-        expr.append(sequitur_tuple_to_regex(grammar, stuple))
-    return Alt(expr, star)
+        expr.append(sequitur_tuple_to_regex(grammar, stuple, ctl_flow))
+    return Alt(expr)
 
 import pudb
 br = pudb.set_trace
 
-def if_to_regex(grammar, definition, token, star):
-    return alts_to_regex(grammar, definition, star)
+def if_to_regex(grammar, definition, token, ctl_flow):
+    return alts_to_regex(grammar, definition, ctl_flow)
 
-def while_to_regex(grammar, definition, token, star):
-    return alts_to_regex(grammar, definition, star)
+def while_to_regex(grammar, definition, token, ctl_flow):
+    return alts_to_regex(grammar, definition, ctl_flow)
 
 
-def sequitur_tuple_to_regex(grammar, s_token, has_star=True):
+def sequitur_tuple_to_regex(grammar, s_token, ctl_flow=True):
     item, count = s_token
     if count == {1}:
         if isinstance(item, list):
             #br()
-            arr = [sequitur_tuple_to_regex(grammar, t) for t in item]
+            arr = [sequitur_tuple_to_regex(grammar, t, ctl_flow) for t in item]
             return Seq(arr)
         else:
             assert isinstance(item, (str, dict))
-            return token_to_regex(grammar, item, has_star)
+            if ctl_flow:
+                return token_to_regex(grammar, item, ctl_flow)
+            else:
+                return repr(item)
     else:
         if isinstance(item, list):
             #br()
-            arr = [sequitur_tuple_to_regex(grammar, t) for t in item]
+            arr = [sequitur_tuple_to_regex(grammar, t, ctl_flow) for t in item]
             return Rep(Seq(arr), count=count)
         else:
             assert isinstance(item, (str, dict))
-            return Rep(token_to_regex(grammar, item, has_star), count=count)
+            return Rep(token_to_regex(grammar, item, ctl_flow), count=count)
 
-def token_to_regex(grammar, token, has_star=True):
+def token_to_regex(grammar, token, ctl_flow=True):
     if isinstance(token, dict):
         #br()
         tokens = token['alternatives']
-        arr = [token_to_regex(grammar, a, has_star) for a in tokens]
-        return Alt(arr, has_star)
+        arr = [token_to_regex(grammar, a, ctl_flow) for a in tokens]
+        return Alt(arr, ctl_flow)
     else:
         definition = grammar.get(token, None)
         if definition is None:
             return One(token)
         elif ':while_' in token:
             #br()
-            return while_to_regex(grammar, definition, token, star=('*' in token) and has_star)
+            return while_to_regex(grammar, definition, token, ctl_flow)
         elif ':if_' in token:
             #br()
-            return if_to_regex(grammar, definition, token, star=('*' in token) and has_star)
+            return if_to_regex(grammar, definition, token, ctl_flow)
         else:
             return One(token)
