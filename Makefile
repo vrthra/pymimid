@@ -26,26 +26,6 @@ build/%_trace.json: build/%_parser.py | build
 	$(python) $< sample/input/$*/$(arg) > $@_
 	mv $@_ $@
 
-build/calc_trace.json: arg=*.csv
-build/calc_trace.json: build/calc_parser.py | build
-	$(python) $< sample/input/calc/$(arg) > $@_
-	mv $@_ $@
-
-build/microjson_trace.json: arg=*.csv
-build/microjson_trace.json: build/microjson_parser.py | build
-	$(python) $< sample/input/microjson/$(arg) > $@_
-	mv $@_ $@
-
-build/urljava_trace.json: arg=*.csv
-build/urljava_trace.json: build/urljava_parser.py | build
-	$(python) $< sample/input/urljava/$(arg) > $@_
-	mv $@_ $@
-
-build/urlpy_trace.json: arg=*.csv
-build/urlpy_trace.json: build/urlpy_parser.py | build
-	$(python) $< sample/input/urlpy/$(arg) > $@_
-	mv $@_ $@
-
 #build/datetime_trace.json: arg='HH[:MM[:SS[.fff[fff]]]][+HH:MM[:SS[.ffffff]]]'
 #build/datetime_trace.json: arg='10:20:41.142561+11:21:29.161278'
 build/datetime_trace.json: arg='10:20:41.142561'
