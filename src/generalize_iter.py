@@ -158,6 +158,9 @@ def generalize_loop(idx_map, while_register):
         if ".0" not in k_m[0]:
             if k_m[0] in seen:
                 k_m[0] = seen[k_m[0]]
+                # and update
+                method1, ctrl1, cname1, num1, can_empty1, cstack1 = parse_name(k_m[0])
+                update_name(k_m, cstack1[-1], seen)
                 continue
             # new! get a brand new name!
             while_register[1] += 1
@@ -202,6 +205,7 @@ def generalize(tree):
             continue
         #if 'from_json_dict:while_1 [2' in child[0]: br()
         #if '_from_json_list:while_1 ' in child[0]: br()
+        #if '<parse_expr:while_1 ? [2]>' in child[0]: br()
         while_name = child[0].split(' ')[0]
         if last_while is None:
             last_while = while_name
