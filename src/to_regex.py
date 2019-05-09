@@ -109,106 +109,103 @@ def is_method(token):
     return True
 
 
-#import string
-#MIN_PATTERN_LEN = 4
-#MIN_PATTERN_FRAC = 0.50
-#def alts_to_regex(grammar, alts):
-#    if len(alts) == 1:
-#        return "%s" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
-#    else:
-#        r = set(len(a) for a in alts)
-#        if r == {1}:
-#            r = set(a[0] for a in alts)
-#            t = {type(a) if a[0] != '<' and a[-1] != '>' else None for a in r}
-#            if t == {str}:
-#                no_esc_punct = set(list(string.punctuation)) - set("[]^-")
-#                punct = "".join(no_esc_punct)
-#                p_ = "-_\". +#()=/*:?,@!"
-#                p = string.ascii_letters + string.digits + "-_\". +#()=/*:?,@!"
-#                ops = "+-*/"
-#                quotes = "\"'"
-#                boxes = "[]{}()<>"
-#                patterns = {
-#                        "[0-9]": string.digits,
-#                        "[a-z]": string.ascii_lowercase,
-#                        "[A-Z]": string.ascii_uppercase,
-#                        "[a-zA-Z]": string.ascii_letters,
-#                        "[a-zA-Z0-9]": string.ascii_letters + string.digits,
-#                        "[%s]" % ops : ops,
-#                        "[%s]" % quotes : quotes,
-#                        "[%s]" % boxes : boxes,
-#                        "[%s]" % punct: punct,
-#                        '[a-zA-Z0-9%s]' % p_: p
-#                        }
-#                for k in patterns:
-#                    p  = set(list(patterns[k]))
-#                    # do we hit at least 10%?
-#                    if len(p) * MIN_PATTERN_FRAC < len(r):
-#                        if p >= r and len(r) > MIN_PATTERN_LEN:
-#                            return k
-#                return "[%s]" % "".join(sorted(r))
-#        return "(%s)" % "|".join(sorted(set([rule_to_regex(grammar, a) for a in alts])))
+import string
+MIN_PATTERN_LEN = 4
+MIN_PATTERN_FRAC = 0.50
+def chars_to_range(chars):
+    r = set(chars)
+    no_esc_punct = set(list(string.punctuation)) - set("[]^-")
+    punct = "".join(no_esc_punct)
+    p_ = "-_\". +#()=/*:?,@!"
+    p = string.ascii_letters + string.digits + "-_\". +#()=/*:?,@!"
+    ops = "+-*/"
+    quotes = "\"'"
+    boxes = "[]{}()<>"
+    patterns = {
+            "[0-9]": string.digits,
+            "[a-z]": string.ascii_lowercase,
+            "[A-Z]": string.ascii_uppercase,
+            "[a-zA-Z]": string.ascii_letters,
+            "[a-zA-Z0-9]": string.ascii_letters + string.digits,
+            "[%s]" % ops : ops,
+            "[%s]" % quotes : quotes,
+            "[%s]" % boxes : boxes,
+            "[%s]" % punct: punct,
+            '[a-zA-Z0-9%s]' % p_: p
+            }
+    for k in patterns:
+        p  = set(list(patterns[k]))
+        # do we hit at least 10%?
+        if len(p) * MIN_PATTERN_FRAC < len(r):
+            if p >= r and len(r) > MIN_PATTERN_LEN:
+                return k
+    return "[%s]" % "".join(sorted(r))
 
-def alts_to_regex(grammar, alts, ctl_flow):
+def alts_to_regex(grammar, alts, ctl_to_rex):
     expr = []
     for stuple in alts:
-        expr.append(sequitur_tuple_to_regex(grammar, stuple, ctl_flow))
+        expr.append(sequitur_tuple_to_regex(grammar, stuple, ctl_to_rex))
+    if {type(e) for e in expr} == {str}:
+        return chars_to_range(expr)
     return Alt(expr)
 
 import pudb
 br = pudb.set_trace
 
-def if_to_regex(grammar, definition, token, ctl_flow):
-    return alts_to_regex(grammar, definition, ctl_flow)
+def if_to_regex(grammar, definition, token, ctl_to_rex):
+    return alts_to_regex(grammar, definition, ctl_to_rex)
 
-def while_to_regex(grammar, definition, token, ctl_flow):
-    return alts_to_regex(grammar, definition, ctl_flow)
+def while_to_regex(grammar, definition, token, ctl_to_rex):
+    return alts_to_regex(grammar, definition, ctl_to_rex)
 
 
-def sequitur_tuple_to_regex(grammar, s_token, ctl_flow=True):
+def sequitur_tuple_to_regex(grammar, s_token, ctl_to_rex=True):
     item, count = s_token
     if count == {1}:
         if isinstance(item, list):
             #br()
-            arr = [sequitur_tuple_to_regex(grammar, t, ctl_flow) for t in item]
+            arr = [sequitur_tuple_to_regex(grammar, t, ctl_to_rex) for t in item]
             return Seq(arr)
         else:
             assert isinstance(item, (str, dict))
             if isinstance(item, str):
-                if ctl_flow:
-                    return token_to_regex(grammar, item, ctl_flow)
+                if ctl_to_rex:
+                    return token_to_regex(grammar, item, ctl_to_rex)
                 else:
                     return repr(item)
             else:
-                if ctl_flow:
-                    return token_to_regex(grammar, item, ctl_flow)
+                if ctl_to_rex:
+                    return token_to_regex(grammar, item, ctl_to_rex)
                 else:
                     tokens = item['alternatives']
                     return Alt([repr(t) for t in tokens])
     else:
         if isinstance(item, list):
             #br()
-            arr = [sequitur_tuple_to_regex(grammar, t, ctl_flow) for t in item]
+            arr = [sequitur_tuple_to_regex(grammar, t, ctl_to_rex) for t in item]
             return Rep(Seq(arr), count=count)
         else:
             assert isinstance(item, (str, dict))
-            return Rep(token_to_regex(grammar, item, ctl_flow), count=count)
+            if ctl_to_rex:
+                return Rep(token_to_regex(grammar, item, ctl_to_rex), count=count)
+            else:
+                return Rep(item, count=count)
 
-def token_to_regex(grammar, token, ctl_flow=True):
+def token_to_regex(grammar, token, ctl_to_rex=True):
     if isinstance(token, dict):
         #br()
         tokens = token['alternatives']
-        arr = [token_to_regex(grammar, a, ctl_flow) for a in tokens]
-        return Alt(arr, ctl_flow)
+        arr = [token_to_regex(grammar, a, ctl_to_rex) for a in tokens]
+        return Alt(arr, ctl_to_rex)
     else:
         definition = grammar.get(token, None)
         if definition is None:
             return One(token)
         elif ':while_' in token:
             #br()
-            return while_to_regex(grammar, definition, token, ctl_flow)
+            return while_to_regex(grammar, definition, token, ctl_to_rex)
         elif ':if_' in token:
             #br()
-            return if_to_regex(grammar, definition, token, ctl_flow)
+            return if_to_regex(grammar, definition, token, ctl_to_rex)
         else:
             return One(token)

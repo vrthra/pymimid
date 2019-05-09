@@ -176,6 +176,7 @@ def readable(grammar):
             print()
     else:
         for k in m_grammar:
+            #if k == '<_from_json_string>': br()
             print(k)
             for alt in sorted(set([str(to_regex.sequitur_tuple_to_regex(m_grammar, s_tuple, False)) for s_tuple in m_grammar[k]])):
                 print(" | ", alt)
