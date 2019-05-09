@@ -87,8 +87,11 @@ class tstr(tstr):
 
 class tstr(tstr):
     def __radd__(self, other):
-        taint = other.taint if isinstance(other, tstr) else [
-            None for i in other]
+        if other:
+            taint = other.taint if isinstance(other, tstr) else [
+                None for i in other]
+        else:
+            taint = []
         return self.create(str.__add__(other, self), (taint + self.taint))
 
 class tstr(tstr):
