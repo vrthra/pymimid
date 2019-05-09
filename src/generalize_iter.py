@@ -24,6 +24,7 @@ def replace_nodes(node2, node1, my_tree):
     return str1
 
 def node_include(i, j):
+    # Does i include j?
     name_i, children_i, s_i, e_i = i
     name_j, children_j, s_j, e_j = j
     if s_i <= s_j and e_i >= e_j:
@@ -32,7 +33,6 @@ def node_include(i, j):
 
 
 def can_it_be_replaced(i, j):
-    if node_include(i, j): return False
     my_tree = TREE
     original_string = tree_to_string(my_tree)
     a = tree_to_string(i)
@@ -109,16 +109,32 @@ def generalize_loop(idx_map, while_register):
     for while_key, f in while_register[0]:
         # try sampling here.
         values = while_register[0][(while_key, f)]#[0:1]
+        v_ = values[0]
         for k in idx_keys:
+            # all values in v should be tried.
+            #if len(values) > 1: br()
+            replace = 0
             for v in values:
+                assert v[0] == v_[0]
                 k_m = idx_map[k]
-                a = can_it_be_replaced(k_m, v)
-                if not a: continue
+                if not node_include(v, k_m): # if not k_m includes v
+                    a = can_it_be_replaced(k_m, v)
+                    if not a:
+                        replace = 0
+                        break
+                    else:
+                        replace += 1
                 if f == FILE:
-                    b = can_it_be_replaced(v, k_m)
-                    if not b: continue
-                to_replace.append((k_m, v)) # <- replace k_m by v
-                break
+                    if not node_include(k_m, v):
+                        b = can_it_be_replaced(v, k_m)
+                        if not b:
+                            replace = 0
+                            break
+                        else:
+                            replace += 1
+            # at least one needs to vouch, and all capable needs to agree.
+            if replace:
+                to_replace.append((k_m, v_)) # <- replace k_m by v
     replace_stack_and_mark_star(to_replace)
 
     # Check whether any of these can be deleted.
@@ -144,11 +160,17 @@ def generalize_loop(idx_map, while_register):
             assert '?' not in j_m[0]
             if i_m[0] == j_m[0]: break
             # previous whiles worked.
-            a = can_it_be_replaced(i_m, j_m)
-            if not a: continue
-            b = can_it_be_replaced(j_m, i_m)
-            if not b: continue
-            to_replace.append((i_m, j_m)) # <- replace i_m by j_m
+            replace = False
+            if not node_include(j_m, i_m):
+                a = can_it_be_replaced(i_m, j_m)
+                if not a: continue
+                replace = True
+            if not node_include(i_m, j_m):
+                b = can_it_be_replaced(j_m, i_m)
+                if not b: continue
+                replace = True
+            if replace:
+                to_replace.append((i_m, j_m)) # <- replace i_m by j_m
             break
     replace_stack_and_mark_star(to_replace)
 
