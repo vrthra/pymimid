@@ -116,7 +116,8 @@ def convert_to_regex(grammar, e):
 
 import to_regex
 import os
-TO_REGULAR_RHS = os.environ.get('RHS', 'no') == 'yes'
+import to_ebnf
+TO_REGULAR_RHS = os.environ.get('RHS', 'json')
 def plain_str(s):
     return str(s)
 def readable(grammar):
@@ -154,7 +155,7 @@ def readable(grammar):
 
     # now, the while_ and if_ stuff can be summarized to regex, and
     # their definitions removed. Only method defs should remain
-    if TO_REGULAR_RHS:
+    if TO_REGULAR_RHS == 'yes':
         e_grammar = {}
         for k in m_grammar:
             alts = []
@@ -175,12 +176,23 @@ def readable(grammar):
                 print(" | ", alt)
             print()
     else:
-        for k in m_grammar:
-            #if k == '<_from_json_string>': br()
-            print(k)
-            for alt in sorted(set([str(to_regex.sequitur_tuple_to_regex(m_grammar, s_tuple, False)) for s_tuple in m_grammar[k]])):
-                print(" | ", alt)
-            print()
+        if TO_REGULAR_RHS == 'json':
+            jgrammar = {}
+            for k in m_grammar:
+                res = []
+                for s_tuple in m_grammar[k]:
+                    r = to_regex.sequitur_tuple_to_regex(m_grammar, s_tuple, False)
+                    res.append(r)
+                jgrammar[k] = sorted(set([s.to_ebnf() for s in set(res)]), key=str)
+            print(json.dumps(to_ebnf.convert_ebnf_grammar(jgrammar)))
+            #print(json.dumps(jgrammar))
+        else:
+            for k in m_grammar:
+                #if k == '<_from_json_string>': br()
+                print(k)
+                for alt in sorted(set([str(to_regex.sequitur_tuple_to_regex(m_grammar, s_tuple, False)) for s_tuple in m_grammar[k]])):
+                    print(" | ", alt)
+                print()
 
 import json
 def main(arg):

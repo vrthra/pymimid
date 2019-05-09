@@ -107,12 +107,12 @@ build/%-grammar.json: build/%_refine.json
 	$(python) ./src/merge.py $< > $@_
 	mv $@_ $@
 
-build/%-readable.txt: build/%-grammar.json
+build/%-readable.json: build/%-grammar.json
 	$(python) ./src/readable.py $< > $@_
 	mv $@_ $@
 
-readable-%: build/%-readable.txt
-	@cat $<
+readable-%: build/%-readable.json
+	@cat $< | jq .
 
 test:
 	set -e; for i in calc urljava urlpy microjson; do echo $$i; make clean; make show target=$$i; done
