@@ -3,13 +3,10 @@ MATCH_COMPLETE = True
 class Regex:
     def __str__(self):
         if isinstance(self, Alt):
-            #if self.star:
-            #    return "(%s|)" % '|'.join(sorted(set([str(a) for a in self.arr])))
-            #else:
-                if len(self.arr) == 1:
-                    return "%s" % '|'.join(sorted(set([str(a) for a in self.arr])))
-                else:
-                    return "(%s)" % '|'.join(sorted(set([str(a) for a in self.arr])))
+            if len(self.arr) == 1:
+                return "%s" % '|'.join(sorted(set([str(a) for a in self.arr])))
+            else:
+                return "(%s)" % '|'.join(sorted(set([str(a) for a in self.arr])))
         elif  isinstance(self, Rep):
             return "%s+" % self.a
 
@@ -20,10 +17,35 @@ class Regex:
                 return "(%s)" % ''.join(str(a) for a in self.arr)
         elif  isinstance(self, One):
             if len(self.o) == 1:
-                return repr(self.o)
-            return ''.join(str(o).replace('*', '[*]').replace('(', '[(]').replace(')', '[)]') for o in self.o)
+                return self.o
+            #return ''.join(str(o).replace('*', '[*]').replace('(', '\(').replace(')', '\)') for o in self.o)
+            #return ''.join(str(o) for o in self.o)
+            return ''.join(o.replace('(', '[(]').replace(')', '[)]') for o in self.o)
         else:
             assert False
+
+    def to_ebnf(self):
+        if isinstance(self, Alt):
+            if len(self.arr) == 1:
+                return "%s" % '|'.join([a.to_ebnf() for a in self.arr])
+            else:
+                return "(%s)" % '|'.join(sorted(set([a.to_ebnf() for a in self.arr])))
+        elif  isinstance(self, Rep):
+            return "%s+" % self.a
+
+        elif  isinstance(self, Seq):
+            if len(self.arr) == 1:
+                return "%s" % ''.join([a.to_ebnf() for a in self.arr])
+            else:
+                return "(%s)" % ''.join([a.to_ebnf() for a in self.arr])
+        elif  isinstance(self, One):
+            if len(self.o) == 1:
+                return self.o.replace('(', '[(]').replace(')', '[)]')
+            return ''.join(o.replace('(', '[(]').replace(')', '[)]') for o in self.o)
+        else:
+            assert False
+
+    def __cmp__(self, other): return cmp(str(self), str(other))
 
     def sub_match_regex(self, another_regex):
         if MATCH_COMPLETE:
@@ -33,12 +55,18 @@ class Regex:
         return self._sub_match_regex(another_regex)
 
 class Rep(Regex):
-    def __init__(self, a, count): self.a, self.count = a, count
-    def __repr__(self): return "rep:(%s)*" % self.a
+    def __init__(self, a, count):
+        self.a, self.count = a, count
+        super().__init__()
+    def __repr__(self): return "rep:(%s)" % self.a
+    def __cmp__(self, other): return cmp(str(self), str(other))
 
 class Seq(Regex):
-    def __init__(self, arr): self.arr = arr
+    def __init__(self, arr):
+        self.arr = arr
+        super().__init__()
     def __repr__(self): return "seq:(%s)" % ''.join([str(a) for a in self.arr if a])
+    def __cmp__(self, other): return cmp(str(self), str(other))
 
     def _sub_match_regex(self, another):
         if isinstance(another, Alt):
@@ -62,8 +90,11 @@ class Seq(Regex):
 
 
 class One(Regex):
-    def __init__(self, o): self.o = o
+    def __init__(self, o):
+        self.o = o
+        super().__init__()
     def __repr__(self): return "one:(%s)" % (str(self.o) if self.o else '')
+    def __cmp__(self, other): return cmp(str(self), str(other))
 
     def _sub_match_regex(self, another):
         if isinstance(another, Seq):
@@ -82,6 +113,7 @@ class One(Regex):
 class Alt(Regex):
     def __init__(self, arr, star=0): self.arr, self.star = arr, star
     def __repr__(self): return "altz:(%s)" % '|'.join([str(a) for a in self.arr])
+    def __cmp__(self, other): return cmp(str(self), str(other))
 
     def _sub_match_regex(self, another):
         if isinstance(another, Seq):
@@ -145,8 +177,8 @@ def alts_to_regex(grammar, alts, ctl_to_rex):
     expr = []
     for stuple in alts:
         expr.append(sequitur_tuple_to_regex(grammar, stuple, ctl_to_rex))
-    if {type(e) for e in expr} == {str}:
-        return chars_to_range(expr)
+    #if {type(e) for e in expr} == {str}:
+    #    return chars_to_range(expr)
     return Alt(expr)
 
 import pudb
@@ -172,13 +204,13 @@ def sequitur_tuple_to_regex(grammar, s_token, ctl_to_rex=True):
                 if ctl_to_rex:
                     return token_to_regex(grammar, item, ctl_to_rex)
                 else:
-                    return repr(item)
+                    return One(item)
             else:
                 if ctl_to_rex:
                     return token_to_regex(grammar, item, ctl_to_rex)
                 else:
                     tokens = item['alternatives']
-                    return Alt([repr(t) for t in tokens])
+                    return Alt([One(t) for t in tokens])
     else:
         if isinstance(item, list):
             #br()
