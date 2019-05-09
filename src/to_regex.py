@@ -11,10 +11,8 @@ class Regex:
                 else:
                     return "(%s)" % '|'.join(sorted(set([str(a) for a in self.arr])))
         elif  isinstance(self, Rep):
-            if len(self.a) == 1:
-                return "%s*" % self.a
-            else:
-                return "(%s)*" % self.a
+            return "%s+" % self.a
+
         elif  isinstance(self, Seq):
             if len(self.arr) == 1:
                 return "%s" % ''.join(str(a) for a in self.arr)
@@ -35,7 +33,7 @@ class Regex:
         return self._sub_match_regex(another_regex)
 
 class Rep(Regex):
-    def __init__(self, a): self.a = a
+    def __init__(self, a, count): self.a, self.count = a, count
     def __repr__(self): return "rep:(%s)*" % self.a
 
 class Seq(Regex):
@@ -202,10 +200,10 @@ def sequitur_tuple_to_regex(grammar, s_token, has_star=True):
         if isinstance(item, list):
             #br()
             arr = [sequitur_tuple_to_regex(grammar, t) for t in item]
-            return Seq(arr)
+            return Rep(Seq(arr), count=count)
         else:
             assert isinstance(item, (str, dict))
-            return token_to_regex(grammar, item, has_star)
+            return Rep(token_to_regex(grammar, item, has_star), count=count)
 
 def token_to_regex(grammar, token, has_star=True):
     if isinstance(token, dict):
