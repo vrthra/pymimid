@@ -26,22 +26,22 @@ build/%_trace.json: build/%_parser.py | build
 	$(python) $< $(arg) > $@_
 	mv $@_ $@
 
-build/calc_trace.json: arg=0.csv
+build/calc_trace.json: arg=*.csv
 build/calc_trace.json: build/calc_parser.py | build
 	$(python) $< sample/input/calc/$(arg) > $@_
 	mv $@_ $@
 
-build/microjson_trace.json: arg=0.csv
+build/microjson_trace.json: arg=*.csv
 build/microjson_trace.json: build/microjson_parser.py | build
 	$(python) $< sample/input/microjson/$(arg) > $@_
 	mv $@_ $@
 
-build/urljava_trace.json: arg=0.csv
+build/urljava_trace.json: arg=*.csv
 build/urljava_trace.json: build/urljava_parser.py | build
 	$(python) $< sample/input/urljava/$(arg) > $@_
 	mv $@_ $@
 
-build/urlpy_trace.json: arg=0.csv
+build/urlpy_trace.json: arg=*.csv
 build/urlpy_trace.json: build/urlpy_parser.py | build
 	$(python) $< sample/input/urlpy/$(arg) > $@_
 	mv $@_ $@

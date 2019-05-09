@@ -41,8 +41,8 @@ def can_it_be_replaced(i, j):
         return True
     my_string = replace_nodes(i, j, my_tree)
     v = check.check(my_string)
-    if v:
-        print('[{"%s": "%s"}, {"%s":"%s"}, %s]' % (i[0], a.replace('"', "'"), j[0], b.replace('"', "'"), my_string), file=sys.stderr)
+    #if v:
+    #    print('[{"%s": "%s"}, {"%s":"%s"}, %s]' % (i[0], a.replace('"', "'"), j[0], b.replace('"', "'"), my_string), file=sys.stderr)
     return v
 
 while_counter = {}
@@ -100,6 +100,11 @@ def update_name(k_m, my_id, seen):
         update_stack(c, len(cstack)-1, cstack[-1])
     return name, k_m
 
+import random
+MAX_SAMPLES = 2
+def s_fn(v):
+    return len(tree_to_string(v))
+
 def generalize_loop(idx_map, while_register):
     global while_counter
     to_replace = []
@@ -108,8 +113,13 @@ def generalize_loop(idx_map, while_register):
     idx_keys = sorted(idx_map.keys())
     for while_key, f in while_register[0]:
         # try sampling here.
-        values = while_register[0][(while_key, f)]#[0:1]
-        v_ = values[0]
+        my_values = while_register[0][(while_key, f)]#[0:1]
+        v_ = random.choice(my_values)
+        if len(my_values) > 1:
+            values = sorted(my_values, key=s_fn)[0:MAX_SAMPLES]
+            #random.sample(my_values, 10)
+        else:
+            values = my_values
         for k in idx_keys:
             # all values in v should be tried.
             #if len(values) > 1: br()
@@ -281,6 +291,8 @@ def main(arg):
     new_trees = []
     for j in jtrees:
         FILE = j['arg']
+        print(FILE, file=sys.stderr)
+        sys.stderr.flush()
         check.init_module(j['original'])
         TREE = j['tree']
         generalize(TREE)
