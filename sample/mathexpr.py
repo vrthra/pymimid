@@ -8,7 +8,11 @@ class Parser:
         self.vars = {
             'pi': 3.141592653589793,
             'e': 2.718281828459045,
-            'g': 9.8
+            'g': 9.8,
+            'x': 100,
+            'a': 10,
+            'b': 1000,
+            'c': 1,
         }
         for var in vars.keys():
             if self.getVarValue(var) != None:
