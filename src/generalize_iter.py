@@ -101,9 +101,16 @@ def update_name(k_m, my_id, seen):
     return name, k_m
 
 import random
-MAX_SAMPLES = 2
+MAX_SAMPLES = 5
+
+def num_tokens(v, s):
+    name, child, *rest = v 
+    s.add(name)
+    [num_tokens(i, s) for i in child]
+    return len(s)
+
 def s_fn(v):
-    return len(tree_to_string(v))
+    return num_tokens(v, set())
 
 def generalize_loop(idx_map, while_register):
     global while_counter
@@ -116,17 +123,23 @@ def generalize_loop(idx_map, while_register):
         my_values = while_register[0][(while_key, f)]#[0:1]
         v_ = random.choice(my_values)
         if len(my_values) > 1:
-            values = sorted(my_values, key=s_fn)[0:MAX_SAMPLES]
+            values = sorted(my_values, key=s_fn, reverse=True)[0:MAX_SAMPLES]
             #random.sample(my_values, 10)
         else:
             values = my_values
         for k in idx_keys:
+            k_m = idx_map[k]
+            if len(my_values) > MAX_SAMPLES:
+                values = sorted([v for v in my_values if not node_include(v, k_m)], key=s_fn, reverse=True)[0:MAX_SAMPLES]
+                #random.sample(my_values, 10)
+            else:
+                values = my_values
+
             # all values in v should be tried.
             #if len(values) > 1: br()
             replace = 0
             for v in values:
                 assert v[0] == v_[0]
-                k_m = idx_map[k]
                 if not node_include(v, k_m): # if not k_m includes v
                     a = can_it_be_replaced(k_m, v)
                     if not a:
@@ -270,7 +283,7 @@ def has_complex_children(tree):
 
 def replace_stack_and_mark_star(to_replace):
     # remember, we only replace whiles.
-    for i, j in to_replace:
+    for n, (i, j) in enumerate(to_replace):
         #if has_complex_children(i) or has_complex_children(j):
         method1, ctrl1, cname1, num1, can_empty1, cstack1 = parse_name(i[0])
         method2, ctrl2, cname2, num2, can_empty2, cstack2 = parse_name(j[0])
