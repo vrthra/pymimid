@@ -15,7 +15,7 @@ all-%: build/%_refine.json
 
 # rewrite to incorporate a in b => a.in_(b)
 # and scopes and tracing.
-build/%_parser.py: sample/%.py | build
+build/%_parser.py: subjects/%.py | build
 	$(python) src/rewriter.py $< > $@_
 	mv $@_ $@
 
